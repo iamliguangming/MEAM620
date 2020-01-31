@@ -5,10 +5,22 @@ class WaypointTraj(object):
 
     """
     def __init__(self, points):
+        self.point_List = []
+        self.trajectory_List = []
+        self.time_List = []
+        for i in range(points.shape[0]):
+            self.point_List.append(points[i,:])
+            self.time_list.append(i)
+        for i in range(len(self.point_List)-1):
+            self.trajectory_List.append(self.point_List[i+1]-self.point_List[i])
+            
+        
+        
+        
         """
         This is the constructor for the Trajectory object. A fresh trajectory
         object will be constructed before each mission. For a waypoint
-        trajectory, the input argument is an array of 3D destination
+        trajectory, the input argument is a+n array of 3D destination
         coordinates. You are free to choose the times of arrival and the path
         taken between the points in any way you like.
 
