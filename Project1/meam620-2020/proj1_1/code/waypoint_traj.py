@@ -1,18 +1,23 @@
 import numpy as np
 
 class WaypointTraj(object):
+    max_Velocity = 2
+    max_Acceleration = 0.5
     """
 
     """
     def __init__(self, points):
         self.point_List = []
         self.trajectory_List = []
-        self.time_List = []
+        self.direction_List = []
+        self.time_List = [0]
         for i in range(points.shape[0]):
             self.point_List.append(points[i,:])
-            self.time_list.append(i)
         for i in range(len(self.point_List)-1):
             self.trajectory_List.append(self.point_List[i+1]-self.point_List[i])
+            self.direction_List.append(self.trajectory_List[i]/np.linalg.norm(self.trajectory_List[i]))
+            self.time_List.append(np.linalg.norm(self.trajectory_List[i])/self.max_Velocity + self.time_List[i])
+
             
         
         
@@ -56,6 +61,10 @@ class WaypointTraj(object):
         x_ddddot = np.zeros((3,))
         yaw = 0
         yaw_dot = 0
+        
+        for i in range(len(self.time_List)):
+            if t>= self.time_List[i] and t< self.time_List[i+1]:
+                self.x = (t - self.time_List[i])/(self.time_List[i+1] - self.time_List[i])*(self.point_List[i+1])
 
         # STUDENT CODE HERE
 
