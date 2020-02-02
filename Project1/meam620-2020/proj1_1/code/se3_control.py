@@ -30,14 +30,15 @@ class SE3Control(object):
         self.rotor_speed_max = quad_params['rotor_speed_max'] # rad/s
         self.k_thrust        = quad_params['k_thrust'] # N/(rad/s)**2
         self.k_drag          = quad_params['k_drag']   # Nm/(rad/s)**2
+        self.gamma  = self.k_drag / self.k_thrust 
 
         # You may define any additional constants you like including control gains.
         self.inertia = np.diag(np.array([self.Ixx, self.Iyy, self.Izz])) # kg*m^2
         self.g = 9.81 # m/s^2
-        self.Kp = 0.7
-        self.Kd = 0.3
-        self.Kr = 0.1
-        self.Kw = 0.1
+        self.Kp = 1.2
+        self.Kd = 0.5
+        self.Kr = 0.3
+        self.Kw = 0.4
 
         # STUDENT CODE HERE
 
@@ -87,7 +88,7 @@ class SE3Control(object):
         R_des[:,1] = b2_des
         R_des[:,2] = b3_des
         
-        e_R_Matrix= 1/2 * (np.dot(np.transpose(R_des),rAB)-np.dot(rAB,np.transpose(R_des)))
+        e_R_Matrix= 1/2 * (np.dot(np.transpose(R_des),rAB)-np.dot(np.transpose(rAB),R_des))
         
         e_R = np.zeros((3,))
         e_R[0] = e_R_Matrix[2,1]
@@ -98,12 +99,21 @@ class SE3Control(object):
         w_des = np.zeros((3,))
         e_w = state['w'] - w_des
         
+        u_2 = np.zeros((3,))
         u_2 = np.matmul(self.inertia,(-self.Kr*e_R-self.Kw*e_w))
+
+        
+        u = np.append([u_1],u_2)
+        Matrix_u = np.array([[1,1,1,1],[0,self.arm_length,0,-self.arm_length],[-self.arm_length,0,self.arm_length,0],[self.gamma,-self.gamma,self.gamma,-self.gamma]])
+        
+        cmd_motor_speeds = np.sqrt(np.matmul(np.linalg.inv(Matrix_u), u)/self.k_thrust)
+
+        
                         
-        cmd_motor_speeds[0] = np.sqrt(self.mass*self.g/4/self.k_thrust)
-        cmd_motor_speeds[1] = np.sqrt(self.mass*self.g/4/self.k_thrust)
-        cmd_motor_speeds[2] = np.sqrt(self.mass*self.g/4/self.k_thrust)
-        cmd_motor_speeds[3] = np.sqrt(self.mass*self.g/4/self.k_thrust)
+        # cmd_motor_speeds[0] = np.sqrt(self.mass*self.g/4/self.k_thrust)
+        # cmd_motor_speeds[1] = np.sqrt(self.mass*self.g/4/self.k_thrust)
+        # cmd_motor_speeds[2] = np.sqrt(self.mass*self.g/4/self.k_thrust)
+        # cmd_motor_speeds[3] = np.sqrt(self.mass*self.g/4/self.k_thrust)
         
         
         

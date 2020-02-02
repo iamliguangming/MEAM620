@@ -23,16 +23,14 @@ quadrotor = Quadrotor(quad_params)
 my_se3_control = se3_control.SE3Control(quad_params)
 
 # This simple hover trajectory is useful for tuning control gains.
-my_traj = hover_traj.HoverTraj()
+# my_traj = hover_traj.HoverTraj()
 
 # You will complete the implementation of the WaypointTraj object. It should
 # work for any list of 3D coordinates, such as this example:
-# points = np.array([
-#     [0, 0, 0],
-#     [1, 0, 0],
-#     [1, 1, 0],
-#     [1, 1, 1]])
-# my_traj = waypoint_traj.WaypointTraj(points)
+points = np.array([
+    [0, 0, 0],
+    [1, 0, 0],[1,1,3]])
+my_traj = waypoint_traj.WaypointTraj(points)
 
 # Set simulation parameters.
 #
