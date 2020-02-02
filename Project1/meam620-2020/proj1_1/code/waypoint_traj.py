@@ -7,7 +7,7 @@ class WaypointTraj(object):
 
     """
     def __init__(self, points):
-        self.point_List = []
+        self.point_List = [np.array([0,0,0])]
         self.trajectory_List = []
         self.direction_List = []
         self.time_List = [0]
@@ -63,8 +63,16 @@ class WaypointTraj(object):
         yaw_dot = 0
         
         for i in range(len(self.time_List)):
-            if t>= self.time_List[i] and t< self.time_List[i+1]:
-                self.x = (t - self.time_List[i])/(self.time_List[i+1] - self.time_List[i])*(self.point_List[i+1])
+            if t == self.time_List[i] or t > self.time_List[-1]:
+                x = self.point_List[i]
+                x_dot = np.zeros((3,))
+            elif t > self.time_List[i] and t< self.time_List[i+1]:
+                x = (t - self.time_List[i])/(self.time_List[i+1] - self.time_List[i])*(self.point_List[i+1]-self.point_List[i]) + self.point_List[i]
+                x_dot = self.max_Velocity * self.direction_List[i]
+            else:
+                pass
+        
+            
 
         # STUDENT CODE HERE
 
