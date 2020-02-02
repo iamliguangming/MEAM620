@@ -34,6 +34,10 @@ class SE3Control(object):
         # You may define any additional constants you like including control gains.
         self.inertia = np.diag(np.array([self.Ixx, self.Iyy, self.Izz])) # kg*m^2
         self.g = 9.81 # m/s^2
+        self.Kp = 0.7
+        self.Kd = 0.3
+        self.Kr = 0.1
+        self.Kw = 0.1
 
         # STUDENT CODE HERE
 
@@ -66,11 +70,47 @@ class SE3Control(object):
                 cmd_q, quaternion [i,j,k,w] (for laboratory; not used by simulator)
         """
         cmd_motor_speeds = np.zeros((4,))
-        cmd_thrust = 0
+        cmd_thrust = 0  
         cmd_moment = np.zeros((3,))
         cmd_q = np.zeros((4,))
+        
+        rAB = Rotation.from_quat(state['q']).as_matrix()    
+        x_ddot_des = flat_output['x_ddot'] - self.Kd*(state['v']-flat_output['x_dot'])-self.Kp*(state['x']-flat_output['x']) 
+        F_des = self.mass * x_ddot_des + np.array([0,0,self.mass * self.g])
+        u_1 = np.inner(np.matmul(rAB,[0,0,1]),F_des)
+        b3_des = F_des / np.linalg.norm(F_des)
+        a_psi = np.array([np.cos(flat_output['yaw']),np.sin(flat_output['yaw']),0])
+        b2_des = np.cross(b3_des,a_psi)/np.linalg.norm(np.cross(b3_des,a_psi))
+        
+        R_des = np.zeros((3,3))
+        R_des[:,0] = np.cross(b2_des,b3_des)
+        R_des[:,1] = b2_des
+        R_des[:,2] = b3_des
+        
+        e_R_Matrix= 1/2 * (np.dot(np.transpose(R_des),rAB)-np.dot(rAB,np.transpose(R_des)))
+        
+        e_R = np.zeros((3,))
+        e_R[0] = e_R_Matrix[2,1]
+        e_R[1] = e_R_Matrix[0,2]
+        e_R[2] = e_R_Matrix[1,0]
+        
+        
+        w_des = np.zeros((3,))
+        e_w = state['w'] - w_des
+        
+        u_2 = np.matmul(self.inertia,(-self.Kr*e_R-self.Kw*e_w))
+                        
+        cmd_motor_speeds[0] = np.sqrt(self.mass*self.g/4/self.k_thrust)
+        cmd_motor_speeds[1] = np.sqrt(self.mass*self.g/4/self.k_thrust)
+        cmd_motor_speeds[2] = np.sqrt(self.mass*self.g/4/self.k_thrust)
+        cmd_motor_speeds[3] = np.sqrt(self.mass*self.g/4/self.k_thrust)
+        
+        
+        
+        # cmd_motor_speeds = np.full((4,1),np.sqrt(self.mass*self.g/4/self.k_thrust))
 
         # STUDENT CODE HERE
+
 
         control_input = {'cmd_motor_speeds':cmd_motor_speeds,
                          'cmd_thrust':cmd_thrust,
