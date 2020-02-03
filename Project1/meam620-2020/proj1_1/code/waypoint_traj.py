@@ -1,7 +1,7 @@
 import numpy as np
 
 class WaypointTraj(object):
-    max_Velocity = 0.2
+    max_Velocity = 0.5
     max_Acceleration = 0.5
     """
 
@@ -11,6 +11,7 @@ class WaypointTraj(object):
         self.trajectory_List = []
         self.direction_List = []
         self.time_List = [0]
+        
         for i in range(points.shape[0]):
             self.point_List.append(points[i,:])
         for i in range(len(self.point_List)-1):
@@ -66,12 +67,17 @@ class WaypointTraj(object):
             if t == self.time_List[i] or t > self.time_List[-1]:
                 x = self.point_List[i]
                 x_dot = np.zeros((3,))
+                yaw = 0
             elif t > self.time_List[i] and t< self.time_List[i+1]:
                 x = (t - self.time_List[i])/(self.time_List[i+1] - self.time_List[i])*(self.point_List[i+1]-self.point_List[i]) + self.point_List[i]
                 x_dot = self.max_Velocity * self.direction_List[i]
+                yaw = np.arctan2(self.direction_List[i][1],self.direction_List[i][0])
             else:
                 pass
-        
+        if t>self.time_List[-1]:
+            x = self.point_List[-1]
+            x_dot = np.zeros((3,))
+            yaw = 0
             
 
         # STUDENT CODE HERE

@@ -34,11 +34,17 @@ class SE3Control(object):
 
         # You may define any additional constants you like including control gains.
         self.inertia = np.diag(np.array([self.Ixx, self.Iyy, self.Izz])) # kg*m^2
+        self.Kd = np.diag(np.array([2,0.8,2]))
+        self.Kp = np.diag(np.array([2,0.8,2]))
         self.g = 9.81 # m/s^2
-        self.Kp = 1.2
-        self.Kd = 0.5
-        self.Kr = 0.3
-        self.Kw = 0.4
+        # self.Kp_phi = 0.005
+        # self.Kd_phi = 0.0005
+        # self.Kp_theta = 0.005
+        # self.Kd_theta = 0.0005
+        # self.Kp_psi = 0.005
+        # self.Kd_psi = 0.0005
+        self.Kr = np.diag(np.array([0.5,0.5,0.5]))
+        self.Kw = np.diag(np.array([0.007,0.008,0.009]))
 
         # STUDENT CODE HERE
 
@@ -76,7 +82,18 @@ class SE3Control(object):
         cmd_q = np.zeros((4,))
         
         rAB = Rotation.from_quat(state['q']).as_matrix()    
-        x_ddot_des = flat_output['x_ddot'] - self.Kd*(state['v']-flat_output['x_dot'])-self.Kp*(state['x']-flat_output['x']) 
+        x_ddot_des = flat_output['x_ddot'] - np.matmul(self.Kd,state['v']-flat_output['x_dot'])- np.matmul(self.Kp,state['x']-flat_output['x'])
+        
+        # u_1 = self.mass*(x_ddot_des[2]+self.g)
+        # theta_des = 1/2 * (x_ddot_des[0]+x_ddot_des[1])/self.g/np.sin(flat_output['yaw'])
+        # phi_des = 1/2 * (x_ddot_des[0] - x_ddot_des[1])/self.g/np.sin(flat_output['yaw'])
+        # psi_des = flat_output['yaw']
+        
+        # phi, theta, psi =  Rotation.from_quat(state['q']).as_euler('XYZ')
+        
+        
+        
+        # u_2 = np.matmul(self.inertia,np.array([-self.Kp_phi*(phi-phi_des)-self.Kd_phi*(state['w'][0]),-self.Kp_theta*(theta-theta_des)-self.Kd_theta*(state['w'][1]),-self.Kp_psi*(psi-psi_des)-self.Kd_psi*(state['w'][2])]))
         F_des = self.mass * x_ddot_des + np.array([0,0,self.mass * self.g])
         u_1 = np.inner(np.matmul(rAB,[0,0,1]),F_des)
         b3_des = F_des / np.linalg.norm(F_des)
@@ -87,6 +104,7 @@ class SE3Control(object):
         R_des[:,0] = np.cross(b2_des,b3_des)
         R_des[:,1] = b2_des
         R_des[:,2] = b3_des
+        
         
         e_R_Matrix= 1/2 * (np.dot(np.transpose(R_des),rAB)-np.dot(np.transpose(rAB),R_des))
         
@@ -100,12 +118,15 @@ class SE3Control(object):
         e_w = state['w'] - w_des
         
         u_2 = np.zeros((3,))
-        u_2 = np.matmul(self.inertia,(-self.Kr*e_R-self.Kw*e_w))
+        u_2 = np.matmul(self.inertia,(-np.matmul(self.Kr,e_R)-np.matmul(self.Kw,e_w)))
 
         
         u = np.append([u_1],u_2)
         Matrix_u = np.array([[1,1,1,1],[0,self.arm_length,0,-self.arm_length],[-self.arm_length,0,self.arm_length,0],[self.gamma,-self.gamma,self.gamma,-self.gamma]])
         
+        # for i in range(len(cmd_force)):
+        #     if cmd_force[i] < 0:
+        #         cmd_force[i] = 0
         cmd_motor_speeds = np.sqrt(np.matmul(np.linalg.inv(Matrix_u), u)/self.k_thrust)
 
         
@@ -117,7 +138,6 @@ class SE3Control(object):
         
         
         
-        # cmd_motor_speeds = np.full((4,1),np.sqrt(self.mass*self.g/4/self.k_thrust))
 
         # STUDENT CODE HERE
 
