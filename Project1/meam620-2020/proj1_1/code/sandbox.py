@@ -13,7 +13,7 @@ from flightsim.axes3ds import Axes3Ds
 from flightsim.crazyflie_params import quad_params
 from flightsim import hover_traj
 
-import waypoint_traj
+import waypoint_traj_3
 import se3_control
 
 # This object defines the quadrotor dynamical model and should not be changed.
@@ -28,8 +28,8 @@ my_se3_control = se3_control.SE3Control(quad_params)
 # You will complete the implementation of the WaypointTraj object. It should
 # work for any list of 3D coordinates, such as this example:
 points = np.array([
-    [0,0,1],[1,0,1],[1,1,1]])
-my_traj = waypoint_traj.WaypointTraj(points)
+    [1,0,0],[1,1,0],[1,1,1],[1,0,1],[0,1,0],[0,1,1]])
+my_traj = waypoint_traj_3.WaypointTraj(points)
 
 # Set simulation parameters.
 #
@@ -39,7 +39,7 @@ my_traj = waypoint_traj.WaypointTraj(points)
 
 w = 2
 world = World.empty((-w, w, -w, w, -w, w))
-t_final = 10
+t_final = 100
 initial_state = {'x': np.array([0, 0, 0]),
                  'v': np.zeros(3,),
                  'q': np.array([0, 0, 0, 1]), # [i,j,k,w]

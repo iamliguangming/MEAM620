@@ -1,8 +1,8 @@
 import numpy as np
 
 class WaypointTraj(object):
-    max_Velocity = 5
-    max_Acceleration = 2
+    max_Velocity = 0.5
+    max_Acceleration = 1
     """
 
     """
@@ -11,14 +11,14 @@ class WaypointTraj(object):
         self.trajectory_List = []
         self.direction_List = []
         self.time_List = [0]
+        self.real_time_List = [0]
         
         for i in range(points.shape[0]):
             self.point_List.append(points[i,:])
         for i in range(len(self.point_List)-1):
             self.trajectory_List.append(self.point_List[i+1]-self.point_List[i])
             self.direction_List.append(self.trajectory_List[i]/np.linalg.norm(self.trajectory_List[i]))
-            self.time_List.append(np.linalg.norm(self.trajectory_List[i])/self.max_Velocity + self.time_List[i])
-
+            self.time_List.append(self.time_List[i]+2*np.sqrt(np.linalg.norm(self.trajectory_List[i])/self.max_Acceleration))
             
         
         
@@ -63,22 +63,28 @@ class WaypointTraj(object):
         yaw = 0
         yaw_dot = 0
         
-        for i in range(len(self.time_List)):
-            if t == self.time_List[i] or t > self.time_List[-1]:
-                x = self.point_List[i]
-                x_dot = np.zeros((3,))
-                yaw = 0
-            elif t > self.time_List[i] and t< self.time_List[i+1]:
-                x = (t - self.time_List[i])/(self.time_List[i+1] - self.time_List[i])*(self.point_List[i+1]-self.point_List[i]) + self.point_List[i]
-                x_dot = self.max_Velocity * self.direction_List[i]
-                yaw = np.arctan2(self.direction_List[i][1],self.direction_List[i][0])
-            else:
-                pass
-        if t>self.time_List[-1]:
+        if t > self.time_List[-1]:
             x = self.point_List[-1]
             x_dot = np.zeros((3,))
+            x_ddot = np.zeros((3,))
             yaw = 0
-            
+        elif t <= self.time_List[-1]:
+            for i in range(len(self.time_List)-1):
+                if t>=self.time_List[i] and t<self.time_List[i+1]:
+                    if t-self.time_List[i] <= self.time_List[i+1]-t:
+                        x_ddot = self.direction_List[i] * self.max_Acceleration
+                        x_dot = x_ddot * (t-self.time_List[i])
+                        x = self.point_List[i] + 1/2* x_ddot*(t-self.time_List[i])**2
+                    elif t-self.time_List[i] > self.time_List[i+1]-t:
+                        x_ddot = -self.direction_List[i] * self.max_Acceleration
+                        x_dot = -x_ddot*(self.time_List[i+1]-t)
+                        x = self.point_List[i+1] + 1/2* x_ddot*(self.time_List[i+1]-t)**2
+                yaw = np.arctan2(self.direction_List[i][1],self.direction_List[i][0])
+                
+                        
+                        
+                
+
 
         # STUDENT CODE HERE
 
