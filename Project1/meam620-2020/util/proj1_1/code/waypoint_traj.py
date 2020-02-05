@@ -2,7 +2,7 @@ import numpy as np
 
 class WaypointTraj(object):
     max_Velocity = 0.5
-    max_Acceleration = 1
+    max_Acceleration = 3.6
     """
 
     """
@@ -12,7 +12,7 @@ class WaypointTraj(object):
         self.direction_List = []
         self.time_List = [0]
         self.real_time_List = [0]
-        self.hover_interval = 2
+        self.hover_interval = 0
         
         for i in range(points.shape[0]):
             self.point_List.append(points[i,:])

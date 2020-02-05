@@ -199,7 +199,7 @@ class Quadrotor(object):
         self.g = 9.81 # m/s^2
 
         # Precomputes
-        k = self.k_thrust/self.k_drag
+        k = self.k_drag/self.k_thrust
         L = self.arm_length
         self.to_TM = np.array([[1,  1,  1,  1],
                                [ 0,  L,  0, -L],
