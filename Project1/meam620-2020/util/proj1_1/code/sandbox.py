@@ -28,7 +28,7 @@ my_se3_control = se3_control.SE3Control(quad_params)
 # You will complete the implementation of the WaypointTraj object. It should
 # work for any list of 3D coordinates, such as this example:
 points = np.array([
-    [0,0,1],[0,1,1],[1,1,1],[1,1,0],[1,0,0],[1,0,1]])
+    [0,0,1],[0,1,1],[1,1,1],[1,1,0],[1,0,0],[1,0,1],[0,-1,0]])
 my_traj = waypoint_traj.WaypointTraj(points)
 
 # Set simulation parameters.
@@ -39,9 +39,9 @@ my_traj = waypoint_traj.WaypointTraj(points)
 
 w = 2
 world = World.empty((-w, w, -w, w, -w, w))
-t_final = 100
+t_final = 60
 initial_state = {'x': np.array([0, 0, 0]),
-                 'v': np.zeros(3,),
+                 'v': np.array([0,0,0]),
                  'q': np.array([0, 0, 0, 1]), # [i,j,k,w]
                  'w': np.zeros(3,)}
 

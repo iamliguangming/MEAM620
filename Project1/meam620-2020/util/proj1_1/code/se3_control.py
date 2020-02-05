@@ -34,8 +34,8 @@ class SE3Control(object):
 
         # You may define any additional constants you like including control gains.
         self.inertia = np.diag(np.array([self.Ixx, self.Iyy, self.Izz])) # kg*m^2
-        self.Kd = np.diag(np.array([0,0,20]))
-        self.Kp = np.diag(np.array([0,0,100]))
+        self.Kd = np.diag(np.array([8,8,6.4]))
+        self.Kp = np.diag(np.array([2,2,6.4]))
         # self.Kd = np.diag(np.array([1,1,1]))
         # self.Kp = np.diag(np.array([1,1,1]))
         self.g = 9.81 # m/s^2
@@ -45,8 +45,8 @@ class SE3Control(object):
         # self.Kd_theta = 0.0005
         # self.Kp_psi = 0.005
         # self.Kd_psi = 0.0005
-        self.Kr = np.diag(np.array([7.5,7.5,7.5]))
-        self.Kw = np.diag(np.array([0.01,0.01,0.01]))
+        self.Kr = np.diag(np.array([1000,1000,0.0001]))
+        self.Kw = np.diag(np.array([500,500,0.0005]))
         # self.Kr = np.diag(np.array([1,1,1]))
         # self.Kw = np.diag(np.array([0.001,0.001,0.001]))
 
