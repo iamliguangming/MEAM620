@@ -7,7 +7,7 @@ class WaypointTraj(object):
 
     """
     def __init__(self, points):
-        self.point_List = [np.array([0,0,0])]
+        self.point_List = []
         self.trajectory_List = []
         self.direction_List = []
         self.time_List = [0]
