@@ -2,7 +2,7 @@ import numpy as np
 
 class WaypointTraj(object):
     max_Velocity = 0.5
-    max_Acceleration = 3.6
+    max_Acceleration = 3
     """
 
     """
