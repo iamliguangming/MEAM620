@@ -12,10 +12,10 @@ from proj1_2.code.graph_search import graph_search
 
 # Choose a test example file. You should write your own example files too!
 # filename = 'test_empty.json'
-filename = 'test_saw.json'
+filename = 'test_forest.json'
 
 # Load the test example.
-file = Path(inspect.getsourcefile(lambda:0)).parent.resolve() / '..' / 'util' / filename
+file = Path(inspect.getsourcefile(lambda:0)).parent.resolve() / 'proj1_2' / 'util' / filename
 with open(file) as f:
     data = json.load(f)
 world = World(data)                       # World boundary and obstacles.
