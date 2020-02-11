@@ -12,8 +12,8 @@ import numpy as np
 from scipy.spatial.distance import cdist
 
 from flightsim.world import World
-from proj1_2.code.occupancy_map import OccupancyMap
-from proj1_2.code.graph_search import graph_search as student_graph_search_fn
+from occupancy_map import OccupancyMap
+from graph_search import graph_search as student_graph_search_fn
 
 def set_path_metrics(metrics, path_name, path, time, oc, start, goal, resolution, expected_path_length):
     """
