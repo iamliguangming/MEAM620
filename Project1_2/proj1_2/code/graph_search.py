@@ -73,10 +73,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
                                 heapq.heapify(Q)
                                 parent[u_x+i,u_y+j,u_z+k,:] = [u_x,u_y,u_z]
                 # print([u_x,u_y,u_z])
-        current_X = goal_index[0]
-        current_Y = goal_index[1]
-        current_Z = goal_index[2]
-        
+
     elif astar == True:
         for i in range(occ_map.map.shape[0]):
             for j in range(occ_map.map.shape[1]):
@@ -120,18 +117,22 @@ def graph_search(world, resolution, margin, start, goal, astar):
                                 heapq.heapify(Q)
                                 parent[u_x+i,u_y+j,u_z+k,:] = [u_x,u_y,u_z]
                 # print([u_x,u_y,u_z])
-        current_X = goal_index[0]
-        current_Y = goal_index[1]
-        current_Z = goal_index[2]
+    current_X = goal_index[0]
+    current_Y = goal_index[1]
+    current_Z = goal_index[2]
         
         
         
     path = []
+    if parent[goal_index[0],goal_index[1],goal_index[2],:].any() == 0:
+        return None
     
     
     while [current_X,current_Y,current_Z] != [start_index[0],start_index[1],start_index[2]]:
         path.insert(0,occ_map.index_to_metric_center([current_X,current_Y,current_Z]))
         [current_X,current_Y,current_Z] = parent[int(current_X),int(current_Y),int(current_Z)]
+    path.insert(0,start)
+    path.append(goal)
         
     return np.asarray(path)
         

@@ -7,7 +7,7 @@ from flightsim.shapes import Cuboid
 
 
 class OccupancyMap:
-    def __init__(self, world=World.empty((0, 2, 0, 2, 0, 2)), resolution=(.01, .01, .01), margin=.2):
+    def __init__(self, world=World.empty((0, 2, 0, 2, 0, 2)), resolution=(.1, .1, .1), margin=.2):
         """
         This class creates a 3D voxel occupancy map of the configuration space from a flightsim World object.
         Parameters:
