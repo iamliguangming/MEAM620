@@ -50,7 +50,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
         # heapq.heapreplace(Q, (cost_to_come[start_index[0],start_index[1]],[start_index[0],start_index[1]]))
         #Done with initialization
         #Following is the searching process
-        while (cost_to_come[goal_index[0],goal_index[1],goal_index[2]],[goal_index[0],goal_index[1],goal_index[2]]) in Q and cost_to_come.min() < np.inf:
+        while (cost_to_come[goal_index[0],goal_index[1],goal_index[2]],[goal_index[0],goal_index[1],goal_index[2]]) in Q and min(Q)[0] < np.inf:
             u_indicies = min(Q)[1]
             u_x = u_indicies[0]
             u_y = u_indicies[1]
@@ -65,7 +65,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
                         elif not occ_map.is_valid_index([u_x+i,u_y+j,u_z+k]) or occ_map.is_occupied_index([u_x+i,u_y+j,u_z+k]):
                             pass
                         else:
-                            d = cost_to_come[u_x,u_y,u_z]+1
+                            d = cost_to_come[u_x,u_y,u_z]+np.sqrt(i**2 + j**2 +k**2)
                             if d < cost_to_come[u_x+i,u_y+j,u_z+k]:
                                 Q.remove((cost_to_come[u_x+i,u_y+j,u_z+k],[u_x+i,u_y+j,u_z+k]))
                                 cost_to_come[u_x+i,u_y+j,u_z+k] = d
@@ -108,7 +108,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
                         elif not occ_map.is_valid_index([u_x+i,u_y+j,u_z+k]) or occ_map.is_occupied_index([u_x+i,u_y+j,u_z+k]):
                             pass
                         else:
-                            d = cost_to_come[u_x,u_y,u_z]+1
+                            d = cost_to_come[u_x,u_y,u_z]+np.sqrt(i**2 + j**2 +k**2)
                             if d < cost_to_come[u_x+i,u_y+j,u_z+k]:
                                 Q.remove((f[u_x+i,u_y+j,u_z+k],[u_x+i,u_y+j,u_z+k]))
                                 cost_to_come[u_x+i,u_y+j,u_z+k] = d
@@ -131,6 +131,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
     while [current_X,current_Y,current_Z] != [start_index[0],start_index[1],start_index[2]]:
         path.insert(0,occ_map.index_to_metric_center([current_X,current_Y,current_Z]))
         [current_X,current_Y,current_Z] = parent[int(current_X),int(current_Y),int(current_Z)]
+    path.insert(0,occ_map.index_to_metric_center(start_index))
     path.insert(0,start)
     path.append(goal)
         
