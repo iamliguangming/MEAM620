@@ -124,7 +124,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
                     for k in range(-1,2):
                         if i==0 and j==0 and k==0:
                             pass
-                        elif not occ_map.is_valid_index([u_x+i,u_y+j,u_z+k]) or occ_map.is_occupied_index([u_x+i,u_y+j,u_z+k]) or cost_to_come[u_x+i,u_y+j,u_z+k] != np.inf:
+                        elif not occ_map.is_valid_index([u_x+i,u_y+j,u_z+k]) or occ_map.is_occupied_index([u_x+i,u_y+j,u_z+k]):
                             pass
                         else:
                             d = cost_to_come[u_x,u_y,u_z]+np.sqrt(i**2 + j**2 +k**2)
