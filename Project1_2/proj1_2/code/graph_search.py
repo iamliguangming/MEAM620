@@ -23,6 +23,10 @@ def graph_search(world, resolution, margin, start, goal, astar):
     """
 
 
+    always_added  = np.zeros((27,3,26))
+    forced_to_check = np.zeros((27,3,12))
+    forced_to_add = np.zeros((27,3,12))
+    current_situation = np.array([[26,0],[1,8],[3,12],[7,12]])
 
     # While not required, we have provided an occupancy map you may use or modify.
     occ_map = OccupancyMap(world, resolution, margin)
@@ -119,6 +123,9 @@ def graph_search(world, resolution, margin, start, goal, astar):
             u_x = u_indicies[0]
             u_y = u_indicies[1]
             u_z = u_indicies[2]
+            p_x,p_y,p_z= parent[int(u_x),int(u_y),int(u_z)]
+            norm1 = abs(np.array([p_x,p_y,p_z])-u_indicies)
+            num_neib = current_situation[norm1]
             for i in range(-1,2):
                 for j in range(-1,2):
                     for k in range(-1,2):
