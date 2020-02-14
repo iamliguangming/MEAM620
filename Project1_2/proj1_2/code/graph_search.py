@@ -5,6 +5,7 @@ import numpy as np
 from flightsim.world import World
 from occupancy_map import OccupancyMap # Recommended.
 
+
 def graph_search(world, resolution, margin, start, goal, astar):
     """
     Parameters:
@@ -22,6 +23,8 @@ def graph_search(world, resolution, margin, start, goal, astar):
                     exists, return None.
     """
     global occ_map, start_index, goal_index
+    global always_added,forced_to_add,forced_to_check,current_situation
+    global new_x, new_y, new_z
     getNeibArray()
 
     # global always_added, global forced_to_check, global forced_to_add = getNeibArray()
@@ -48,13 +51,13 @@ def graph_search(world, resolution, margin, start, goal, astar):
 
     if astar == False:
 
-        for i in range(occ_map.map.shape[0]):
-            for j in range(occ_map.map.shape[1]):
-                for k in range(occ_map.map.shape[2]):
-                    if  occ_map.map[i,j,k] == False:
-                        heapq.heappush(Q,(cost_to_come[i,j,k],[i,j,k]))
+        # for i in range(occ_map.map.shape[0]):
+        #     for j in range(occ_map.map.shape[1]):
+        #         for k in range(occ_map.map.shape[2]):
+        #             if  occ_map.map[i,j,k] == False:
+        #                 heapq.heappush(Q,(cost_to_come[i,j,k],[i,j,k]))
 
-        Q.remove((cost_to_come[start_index[0],start_index[1],start_index[2]],[start_index[0],start_index[1],start_index[2]]))
+        # Q.remove((cost_to_come[start_index[0],start_index[1],start_index[2]],[start_index[0],start_index[1],start_index[2]]))
         cost_to_come[start_index[0],start_index[1],start_index[2]] = 0
 
         heapq.heappush(Q,(cost_to_come[start_index[0],start_index[1],start_index[2]],[start_index[0],start_index[1],start_index[2]]))
@@ -111,6 +114,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
         f = cost_to_come + heuristic
         heapq.heappush(Q,(f[start_index[0],start_index[1],start_index[2]],[start_index[0],start_index[1],start_index[2]]))
         heapq.heappush(Q,(f[goal_index[0],goal_index[1],goal_index[2]],[goal_index[0],goal_index[1],goal_index[2]]))
+        dx,dy,dz = [0,0,0]
 
 
         # heapq.heapreplace(Q, (cost_to_come[start_index[0],start_index[1]],[start_index[0],start_index[1]]))
@@ -121,8 +125,8 @@ def graph_search(world, resolution, margin, start, goal, astar):
             u_x = u_indicies[0]
             u_y = u_indicies[1]
             u_z = u_indicies[2]
-            p_x,p_y,p_z= parent[int(u_x),int(u_y),int(u_z),:]
-            dx,dy,dz =(np.array(u_indicies) - np.array([p_x,p_y,p_z]))
+            # p_x,p_y,p_z= parent[int(u_x),int(u_y),int(u_z),:]
+
             norm1 = abs(np.array([dx,dy,dz])).sum()
             num_neib = current_situation[norm1][0]
             num_fneib = current_situation[norm1][1]
@@ -147,7 +151,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
                             continue
                     else:
                         continue
-            if not occ_map.is_valid_index([newx,newy,newz]):
+            if not occ_map.is_valid_index([new_x,new_y,new_z]):
                 pass
             else: 
                 d = cost_to_come[u_x,u_y,u_z ]+ np.sqrt(((new_x-u_x)*resolution[0])**2 + ((new_y-u_y)*resolution[1])**2+((new_z-u_z)*resolution[2])**2)
@@ -490,6 +494,7 @@ def getForcedN(dx,dy,dz, runs):
 
 
 def getNeibArray():
+
     global always_added,forced_to_add,forced_to_check,current_situation
     always_added  = np.zeros((27,3,26),dtype = int)
     forced_to_check = np.zeros((27,3,12),dtype = int)
@@ -514,7 +519,7 @@ def jump(x,y,z,dx,dy,dz):
     new_x = x + dx
     new_y = y+ dy
     new_z = z + dz
-    if occ_map.is_occupied_index([new_x,new_y,new_z]):
+    if not occ_map.is_valid_index([new_x,new_y,new_z]) or occ_map.is_occupied_index([new_x,new_y,new_z]):
         return False
     if new_x == goal_index[0] and new_y == goal_index[1] and new_z == goal_index[2]:
         return True
