@@ -4,7 +4,7 @@ import numpy as np
 import math
 
 from flightsim.world import World
-from proj1_2.code.occupancy_map import OccupancyMap # Recommended.
+from occupancy_map import OccupancyMap # Recommended.
 
 
 def graph_search(world, resolution, margin, start, goal, astar):
@@ -112,7 +112,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
         for i in range(occ_map.map.shape[0]):
             for j in range(occ_map.map.shape[1]):
                 for k in range(occ_map.map.shape[2]):
-                    heuristic[i,j,k] = math.sqrt((goal_index[0]-i)**2+(goal_index[1]-j)**2 + (goal_index[2]-k)**2)
+                    heuristic[i,j,k] = math.sqrt((resolution[0]*(goal_index[0]-i))**2+(resolution[1]*(goal_index[1]-j))**2+(resolution[2]*(goal_index[2]-k))**2)
 
         cost_to_come[start_index[0],start_index[1],start_index[2]] = 0
         parent[start_index[0],start_index[1],start_index[2],:] = start_index[0],start_index[1],start_index[2]
