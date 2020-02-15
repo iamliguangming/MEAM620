@@ -3,7 +3,7 @@
     "blocks": [{"extents": [0.0, 1, 0, 1.9, 3, 4], "color": [1, 0, 0]}],
     "start": [1.0, 1.0, 2.0],
     "goal": [1.0, 1.0, 6.0],
-    "resolution": [1, 1, 1],
+    "resolution": [0.1, 0.1, 1],
     "margin": 0.1,
     "expected_path_length": 7.88
 }

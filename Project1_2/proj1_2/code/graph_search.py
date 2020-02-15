@@ -1,7 +1,8 @@
+import math
 import heapq
 from heapq import heappush, heappop  # Recommended.
 import numpy as np
-import math
+from math import sqrt
 import time as t
 
 from flightsim.world import World
@@ -30,24 +31,22 @@ def graph_search(world, resolution, margin, start, goal, astar):
     global new_x_g, new_y_g, new_z_g
     getNeibArray()
 
-  
+
     # global always_added, global forced_to_check, global forced_to_add = getNeibArray()
     # current_situation = np.array([[26,0],[1,8],[3,12],[7,12]])
 
     # While not required, we have provided an occupancy map you may use or modify.
     occ_map = OccupancyMap(world, resolution, margin)
-
+    points_Visted = set()
     # Retrieve the index in the occupancy grid matrix corresponding to a position in space.
     start_index = tuple(occ_map.metric_to_index(start))
     goal_index = tuple(occ_map.metric_to_index(goal))
+    poped_Nodes = 0
 
     occ_map.create_map_from_world
     Q = []
 
     cost_to_come = np.full((occ_map.map.shape[0],occ_map.map.shape[1],occ_map.map.shape[2]),np.inf)
-    heuristic = np.full((occ_map.map.shape[0],occ_map.map.shape[1],occ_map.map.shape[2]),np.inf)
-    f = cost_to_come + heuristic
-
     parent = np.zeros((occ_map.map.shape[0],occ_map.map.shape[1],occ_map.map.shape[2],3),dtype = int)
 
 
@@ -57,48 +56,50 @@ def graph_search(world, resolution, margin, start, goal, astar):
     if astar == False:
         cost_to_come[start_index[0],start_index[1],start_index[2]] = 0
 
-        heapq.heappush(Q,(cost_to_come[start_index[0],start_index[1],start_index[2]],[start_index[0],start_index[1],start_index[2]]))
-        heapq.heappush(Q,(cost_to_come[goal_index[0],goal_index[1],goal_index[2]],[goal_index[0],goal_index[1],goal_index[2]]))
+        heappush(Q,(cost_to_come[start_index[0],start_index[1],start_index[2]],[start_index[0],start_index[1],start_index[2]]))
+        heappush(Q,(cost_to_come[goal_index[0],goal_index[1],goal_index[2]],[goal_index[0],goal_index[1],goal_index[2]]))
         #Done with initialization
         #Following is the searching process
 
         while (cost_to_come[goal_index[0],goal_index[1],goal_index[2]],[goal_index[0],goal_index[1],goal_index[2]]) in Q and cost_to_come.min() < np.inf:
-            u_x,u_y,u_z = heapq.heappop(Q)[1]
+            u_x,u_y,u_z = heappop(Q)[1]
+            poped_Nodes += 1 
+            points_Visted.add((u_x,u_y,u_z))
             for i in range(-1,2):
                 for j in range(-1,2):
                     for k in range(-1,2):
-                        if i==0 and j==0 and k==0:
-                            pass
-                        elif not occ_map.is_valid_index([u_x+i,u_y+j,u_z+k]) or occ_map.is_occupied_index([u_x+i,u_y+j,u_z+k]) or cost_to_come[u_x+i,u_y+j,u_z+k] != np.inf:
+                        if not occ_map.is_valid_index([u_x+i,u_y+j,u_z+k]) or occ_map.is_occupied_index([u_x+i,u_y+j,u_z+k]) or (u_x+i,u_y+j,u_z+k) in points_Visted:
                             pass
                         else:
-                            d = cost_to_come[u_x,u_y,u_z]+math.sqrt(i**2 + j**2 +k**2)
+                            d = cost_to_come[u_x,u_y,u_z]+sqrt(i**2 + j**2 +k**2)
                             if d < cost_to_come[u_x+i,u_y+j,u_z+k]:
                                 cost_to_come[u_x+i,u_y+j,u_z+k] = d
-                                heapq.heappush(Q,(cost_to_come[u_x+i,u_y+j,u_z+k],[u_x+i,u_y+j,u_z+k]))
+                                heappush(Q,(cost_to_come[u_x+i,u_y+j,u_z+k],[u_x+i,u_y+j,u_z+k]))
                                 parent[u_x+i,u_y+j,u_z+k,:] = [u_x,u_y,u_z]
     elif astar == True:
+        heuristic = np.full((occ_map.map.shape[0],occ_map.map.shape[1],occ_map.map.shape[2]),np.inf)
+
+        for i in range(occ_map.map.shape[0]):
+          for j in range(occ_map.map.shape[1]):
+            for k in range(occ_map.map.shape[2]):
+              heuristic[i,j,k] = getHeur([i,j,k],resolution)
+        f = cost_to_come + heuristic
 
         cost_to_come[start_index[0],start_index[1],start_index[2]] = 0
         parent[start_index[0],start_index[1],start_index[2],:] = start_index[0],start_index[1],start_index[2]
         f[start_index[0],start_index[1],start_index[2]] = 0 + getHeur([start_index[0],start_index[1],start_index[2]],resolution)
 
-        heapq.heappush(Q,(f[start_index[0],start_index[1],start_index[2]],[start_index[0],start_index[1],start_index[2]]))
-        heapq.heappush(Q,(f[goal_index[0],goal_index[1],goal_index[2]],[goal_index[0],goal_index[1],goal_index[2]]))
+        heappush(Q,(f[start_index[0],start_index[1],start_index[2]],[start_index[0],start_index[1],start_index[2]]))
+        heappush(Q,(f[goal_index[0],goal_index[1],goal_index[2]],[goal_index[0],goal_index[1],goal_index[2]]))
         #Done with initialization
         #Following is the searching process
 
         while (f[goal_index[0],goal_index[1],goal_index[2]],[goal_index[0],goal_index[1],goal_index[2]]) in Q and min(Q)[0] < np.inf:
 
-            u_indicies = heapq.heappop(Q)[1]
-            # print(u_indicies)
-            u_x = u_indicies[0]
-            u_y = u_indicies[1]
-            u_z = u_indicies[2]
-            # if [u_x,u_y,u_z] == [19,39,4]:
-            #     pass
+            u_x,u_y,u_z = heappop(Q)[1]
+            poped_Nodes+=1
             p_x,p_y,p_z= parent[int(u_x),int(u_y),int(u_z),:]
-            dif = np.array(u_indicies,dtype=int) - np.array([p_x,p_y,p_z],dtype =int)
+            dif = np.array([u_x,u_y,u_z],dtype=int) - np.array([p_x,p_y,p_z],dtype =int)
             for i in range(3):
                 if dif[i]==0:
                     dif[i]=0
@@ -120,16 +121,16 @@ def graph_search(world, resolution, margin, start, goal, astar):
                     dx = always_added[ID][0][i]
                     dy = always_added[ID][1][i]
                     dz = always_added[ID][2][i]
+                    # star = t.time()
                     if not jump(u_x,u_y,u_z,dx,dy,dz,True):
+                        # print(t.time()- star)
                         continue
 
                 else:
                     nx = u_x + forced_to_check[ID][0][i-num_neib]
                     ny = u_y + forced_to_check[ID][1][i-num_neib]
                     nz = u_z + forced_to_check[ID][2][i-num_neib]
-                    if not occ_map.is_valid_index([nx,ny,nz]):
-                      continue
-                    elif occ_map.is_occupied_index([nx,ny,nz]):
+                    if occ_map.is_valid_index([nx,ny,nz]) and occ_map.is_occupied_index([nx,ny,nz]):
                         dx = forced_to_add[ID][0][i-num_neib]
                         dy = forced_to_add[ID][1][i-num_neib]
                         dz = forced_to_add[ID][2][i-num_neib]
@@ -137,11 +138,11 @@ def graph_search(world, resolution, margin, start, goal, astar):
                             continue
                     else:
                         continue
-                d = cost_to_come[u_x,u_y,u_z ]+ math.sqrt(((new_x_g-u_x)*resolution[0])**2 + ((new_y_g-u_y)*resolution[1])**2+((new_z_g-u_z)*resolution[2])**2)
+                d = cost_to_come[u_x,u_y,u_z ]+ sqrt(((new_x_g-u_x)*resolution[0])**2 + ((new_y_g-u_y)*resolution[1])**2+((new_z_g-u_z)*resolution[2])**2)
                 if d < cost_to_come[new_x_g,new_y_g,new_z_g]:
                     cost_to_come[new_x_g,new_y_g,new_z_g]=d
-                    f[new_x_g,new_y_g,new_z_g] = d + getHeur([new_x_g,new_y_g,new_z_g],resolution)
-                    heapq.heappush(Q,(f[new_x_g,new_y_g,new_z_g],[new_x_g,new_y_g,new_z_g]))
+                    f[new_x_g,new_y_g,new_z_g] = d + heuristic[new_x_g,new_y_g,new_z_g]
+                    heappush(Q,(f[new_x_g,new_y_g,new_z_g],[new_x_g,new_y_g,new_z_g]))
                     parent[new_x_g,new_y_g,new_z_g] = [u_x,u_y,u_z]
 
     current_X = goal_index[0]
@@ -161,6 +162,8 @@ def graph_search(world, resolution, margin, start, goal, astar):
     # path.insert(0,occ_map.index_to_metric_center(start_index))
     path.insert(0,start)
     path.append(goal)
+    
+    print (poped_Nodes)
 
     return np.asarray(path)
 
@@ -179,8 +182,6 @@ def graph_search(world, resolution, margin, start, goal, astar):
 
 
 
-
-    return None
 
 def getNeighbors(dx,dy,dz, runs ):
     norm = abs(np.array([dx,dy,dz])).sum()
@@ -500,7 +501,7 @@ def jump(x,y,z,dx,dy,dz,status):
 
     for i in range(num_neib-1):
           new_new_x,new_new_y,new_new_z = new_x,new_y,new_z
-          if jump(new_new_x,new_new_y,new_new_z,always_added[ID][0][i],always_added[ID][1][i],always_added[ID][2][i],False):
+          if jump(new_new_x,new_new_y,new_new_z,always_added[ID][0][i],always_added[ID][1][i],always_added[ID][2][i],True):
               new_x_g,new_y_g,new_z_g= new_x,new_y,new_z
               return True
 
@@ -519,47 +520,28 @@ def hasForced(x,y,z,dx,dy,dz,status):
             nx = x + forced_to_check[ID][0][fn]
             ny = y + forced_to_check[ID][1][fn]
             nz = z + forced_to_check[ID][2][fn]
-            if status:
-                if not occ_map.is_valid_index([nx,ny,nz]) or occ_map.is_occupied_index([nx,ny,nz]):
-                        return True
-            else:
-                if not occ_map.is_valid_index([nx,ny,nz]):
-                    return False
-                elif occ_map.is_occupied_index([nx,ny,nz]):
-                    return True
+            
+            if occ_map.is_valid_index([nx,ny,nz]) and occ_map.is_occupied_index([nx,ny,nz]):
+                  return True
+
         return False
     if norm1 ==2:
         for fn in range(8):
             nx = x + forced_to_check[ID][0][fn]
             ny = y + forced_to_check[ID][1][fn]
             nz = z + forced_to_check[ID][2][fn]
-            if status:
-                if not occ_map.is_valid_index([nx,ny,nz]) or occ_map.is_occupied_index([nx,ny,nz]):
-                        return True
-            else:
-                if not occ_map.is_valid_index([nx,ny,nz]):
-                    return False
-                elif occ_map.is_occupied_index([nx,ny,nz]):
-                    return True
+            if occ_map.is_valid_index([nx,ny,nz]) and occ_map.is_occupied_index([nx,ny,nz]):
+                  return True
         return False
     if norm1 ==3:
         for fn in range(6):
             nx = x + forced_to_check[ID][0][fn]
             ny = y + forced_to_check[ID][1][fn]
             nz = z + forced_to_check[ID][2][fn]
-            if status:
-                if not occ_map.is_valid_index([nx,ny,nz]) or occ_map.is_occupied_index([nx,ny,nz]):
-                        return True
-            else:
-                if not occ_map.is_valid_index([nx,ny,nz]):
-                    return False
-                elif occ_map.is_occupied_index([nx,ny,nz]):
-                    return True
+            if occ_map.is_valid_index([nx,ny,nz]) and occ_map.is_occupied_index([nx,ny,nz]):
+                  return True
         return False
-    return False
+    return False 
 
 def getHeur(index,resolution):
-    return math.sqrt(((goal_index[0]-index[0])*resolution[0])**2+((goal_index[1]-index[1])*resolution[1])**2+((goal_index[2]-index[2])*resolution[2])**2)
-
-
-
+    return sqrt(((goal_index[0]-index[0])*resolution[0])**2+((goal_index[1]-index[1])*resolution[1])**2+((goal_index[2]-index[2])*resolution[2])**2)
