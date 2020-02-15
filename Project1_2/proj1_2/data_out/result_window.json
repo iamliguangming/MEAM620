@@ -1,6 +1,6 @@
 {
     "dijkstra": {
-        "time": 15.056,
+        "time": 12.607,
         "path_length": 30.915,
         "reached_start": true,
         "reached_goal": true,
@@ -9,7 +9,7 @@
         "is_optimal": true
     },
     "astar": {
-        "time": 17.1,
+        "time": 13.17,
         "path_length": 30.915,
         "reached_start": true,
         "reached_goal": true,

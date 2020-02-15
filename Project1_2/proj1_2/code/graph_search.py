@@ -2,6 +2,7 @@ import heapq
 from heapq import heappush, heappop  # Recommended.
 import numpy as np
 import math
+import time as t
 
 from flightsim.world import World
 from occupancy_map import OccupancyMap # Recommended.
@@ -23,11 +24,13 @@ def graph_search(world, resolution, margin, start, goal, astar):
                     start and the last point must be the goal. If no path
                     exists, return None.
     """
+
     global occ_map, start_index, goal_index
     global always_added,forced_to_add,forced_to_check,current_situation
     global new_x_g, new_y_g, new_z_g
     getNeibArray()
 
+    
     # global always_added, global forced_to_check, global forced_to_add = getNeibArray()
     # current_situation = np.array([[26,0],[1,8],[3,12],[7,12]])
 
@@ -42,7 +45,8 @@ def graph_search(world, resolution, margin, start, goal, astar):
     Q = []
 
     cost_to_come = np.full((occ_map.map.shape[0],occ_map.map.shape[1],occ_map.map.shape[2]),np.inf)
-    heuristic = np.zeros((occ_map.map.shape[0],occ_map.map.shape[1],occ_map.map.shape[2]))
+    heuristic = np.full((occ_map.map.shape[0],occ_map.map.shape[1],occ_map.map.shape[2]),np.inf)
+    f = cost_to_come + heuristic
 
     parent = np.zeros((occ_map.map.shape[0],occ_map.map.shape[1],occ_map.map.shape[2],3),dtype = int)
 
@@ -109,14 +113,15 @@ def graph_search(world, resolution, margin, start, goal, astar):
                     # if  occ_map.map[i,j,k] == False:
 
                         # heapq.heappush(Q,(cost_to_come[i,j,k],[i,j,k]))
-        for i in range(occ_map.map.shape[0]):
-            for j in range(occ_map.map.shape[1]):
-                for k in range(occ_map.map.shape[2]):
-                    heuristic[i,j,k] = math.sqrt((resolution[0]*(goal_index[0]-i))**2+(resolution[1]*(goal_index[1]-j))**2+(resolution[2]*(goal_index[2]-k))**2)
+        # for i in range(occ_map.map.shape[0]):
+        #     for j in range(occ_map.map.shape[1]):
+        #         for k in range(occ_map.map.shape[2]):
+        #             heuristic[i,j,k] = math.sqrt((resolution[0]*(goal_index[0]-i))**2+(resolution[1]*(goal_index[1]-j))**2+(resolution[2]*(goal_index[2]-k))**2)
 
         cost_to_come[start_index[0],start_index[1],start_index[2]] = 0
         parent[start_index[0],start_index[1],start_index[2],:] = start_index[0],start_index[1],start_index[2]
-        f = cost_to_come + heuristic
+        f[start_index[0],start_index[1],start_index[2]] = 0 + getHeur([start_index[0],start_index[1],start_index[2]],resolution)
+
         heapq.heappush(Q,(f[start_index[0],start_index[1],start_index[2]],[start_index[0],start_index[1],start_index[2]]))
         heapq.heappush(Q,(f[goal_index[0],goal_index[1],goal_index[2]],[goal_index[0],goal_index[1],goal_index[2]]))
         # dx,dy,dz = [0,0,0]
@@ -125,7 +130,9 @@ def graph_search(world, resolution, margin, start, goal, astar):
         # heapq.heapreplace(Q, (cost_to_come[start_index[0],start_index[1]],[start_index[0],start_index[1]]))
         #Done with initialization
         #Following is the searching process
+
         while (f[goal_index[0],goal_index[1],goal_index[2]],[goal_index[0],goal_index[1],goal_index[2]]) in Q and min(Q)[0] < np.inf:
+
             u_indicies = heapq.heappop(Q)[1]
             u_x = u_indicies[0]
             u_y = u_indicies[1]
@@ -138,6 +145,8 @@ def graph_search(world, resolution, margin, start, goal, astar):
                 else:
                     dif[i] = abs(dif[i])/dif[i]
             dx,dy,dz = dif
+
+
 
 
 
@@ -172,7 +181,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
                 d = cost_to_come[u_x,u_y,u_z ]+ math.sqrt(((new_x_g-u_x)*resolution[0])**2 + ((new_y_g-u_y)*resolution[1])**2+((new_z_g-u_z)*resolution[2])**2)
                 if d < cost_to_come[new_x_g,new_y_g,new_z_g]:
                     cost_to_come[new_x_g,new_y_g,new_z_g]=d
-                    f = cost_to_come + heuristic
+                    f[new_x_g,new_y_g,new_z_g] = d + getHeur([new_x_g,new_y_g,new_z_g],resolution)
                     heapq.heappush(Q,(f[new_x_g,new_y_g,new_z_g],[new_x_g,new_y_g,new_z_g]))
                     parent[new_x_g,new_y_g,new_z_g] = [u_x,u_y,u_z]
 
@@ -208,7 +217,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
 
     while [current_X,current_Y,current_Z] != [start_index[0],start_index[1],start_index[2]]:
         path.insert(0,occ_map.index_to_metric_center([current_X,current_Y,current_Z]))
-        [current_X,current_Y,current_Z] = parent[int(current_X),int(current_Y),int(current_Z)]
+        [current_X,current_Y,current_Z] = parent[int(current_X),int(current_Y),int(current_Z),:]
     path.insert(0,occ_map.index_to_metric_center(start_index))
     path.insert(0,start)
     path.append(goal)
@@ -592,24 +601,5 @@ def hasForced(x,y,z,dx,dy,dz):
         return False
     return False
 
-
-    # if (norm == 0):
-    #     for i in range(-1,2):
-    #         for j in range(-1,2):
-    #             for k in range(-1,2):
-    #                 if i==0,j==0,k==0:
-    #                     pass
-    #                 always_added[i,j,k,:] = [index[0]+i,index[1]+j,index[2]+k]
-
-    # if (norm == 1):
-    #     always_added[0,0,0,:] = index + dif
-    # if (norm == 2):
-    #     if dz ==0:
-    #         always_added[0,1,0,:] = index + np.array([0,1,0])
-    #     else:
-    #         always_added[0,0,1,:] = index + np.array([0,0,1])
-    #     if dx ==0:
-    #         always_added[0,1,0,:] = index + np.array([0,1,0])
-    #     else:
-    #         always_added[1,0,0,:] = index + np.array([1,0,0])
-    #     al
+def getHeur(index,resolution):
+    return math.sqrt(((goal_index[0]-index[0])*resolution[0])**2+((goal_index[1]-index[1])*resolution[1])**2+((goal_index[2]-index[2])*resolution[2])**2)
