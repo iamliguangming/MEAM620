@@ -4,7 +4,7 @@ import numpy as np
 import math
 
 from flightsim.world import World
-from occupancy_map import OccupancyMap # Recommended.
+from proj1_2.code.occupancy_map import OccupancyMap # Recommended.
 
 
 def graph_search(world, resolution, margin, start, goal, astar):
@@ -25,7 +25,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
     """
     global occ_map, start_index, goal_index
     global always_added,forced_to_add,forced_to_check,current_situation
-    global new_x, new_y, new_z
+    global new_x_g, new_y_g, new_z_g
     getNeibArray()
 
     # global always_added, global forced_to_check, global forced_to_add = getNeibArray()
@@ -169,12 +169,12 @@ def graph_search(world, resolution, margin, start, goal, astar):
                 # if not occ_map.is_valid_index([new_x,new_y,new_z]):
                 #     pass
                 # else:
-                d = cost_to_come[u_x,u_y,u_z ]+ math.sqrt(((new_x-u_x)*resolution[0])**2 + ((new_y-u_y)*resolution[1])**2+((new_z-u_z)*resolution[2])**2)
-                if d < cost_to_come[new_x,new_y,new_z]:
-                    cost_to_come[new_x,new_y,new_z]=d
+                d = cost_to_come[u_x,u_y,u_z ]+ math.sqrt(((new_x_g-u_x)*resolution[0])**2 + ((new_y_g-u_y)*resolution[1])**2+((new_z_g-u_z)*resolution[2])**2)
+                if d < cost_to_come[new_x_g,new_y_g,new_z_g]:
+                    cost_to_come[new_x_g,new_y_g,new_z_g]=d
                     f = cost_to_come + heuristic
-                    heapq.heappush(Q,(f[new_x,new_y,new_z],[new_x,new_y,new_z]))
-                    parent[new_x,new_y,new_z] = [u_x,u_y,u_z]
+                    heapq.heappush(Q,(f[new_x_g,new_y_g,new_z_g],[new_x_g,new_y_g,new_z_g]))
+                    parent[new_x_g,new_y_g,new_z_g] = [u_x,u_y,u_z]
 
 
 
@@ -532,22 +532,28 @@ def getNeibArray():
 
 
 def jump(x,y,z,dx,dy,dz):
-    global new_x, new_y,new_z
+    global new_x_g, new_y_g,new_z_g
     new_x = x + dx
     new_y = y+ dy
     new_z = z + dz
     if not occ_map.is_valid_index([new_x,new_y,new_z]) or occ_map.is_occupied_index([new_x,new_y,new_z]):
         return False
     if new_x == goal_index[0] and new_y == goal_index[1] and new_z == goal_index[2]:
+        new_x_g,new_y_g,new_z_g= new_x,new_y,new_z
         return True
     if (hasForced(new_x,new_y,new_z,dx,dy,dz)):
+        new_x_g,new_y_g,new_z_g= new_x,new_y,new_z
         return True
+    new_x_g,new_y_g,new_z_g= new_x,new_y,new_z
     ID = (dx+1) + 3*(dy+1 ) + 9*(dz+1)
     norm1 = abs(dx) + abs(dy) + abs(dz)
     num_neib = current_situation[norm1][0]
 
+
     for i in range(num_neib-1):
-        if jump(new_x,new_y,new_z,always_added[ID][0][i],always_added[ID][1][i],always_added[ID][2][i]):
+        new_new_x,new_new_y,new_new_z = new_x,new_y,new_z
+        if jump(new_new_x,new_new_y,new_new_z,always_added[ID][0][i],always_added[ID][1][i],always_added[ID][2][i]):
+            new_x_g,new_y_g,new_z_g= new_x,new_y,new_z
             return True
 
     return jump(new_x,new_y,new_z,dx,dy,dz)

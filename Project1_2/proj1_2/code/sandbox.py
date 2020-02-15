@@ -26,7 +26,7 @@ goal   = np.array(data['goal'])           # Goal point, shape=(3,)
 
 # Run your code and return the path.
 start_time = time.time()
-path = graph_search(world, resolution, margin, start, goal, astar=False)
+path = graph_search(world, resolution, margin, start, goal, astar=True)
 end_time = time.time()
 print(f'Solved in {end_time-start_time:.2f} seconds')
 
