@@ -108,7 +108,10 @@ def graph_search(world, resolution, margin, start, goal, astar):
                     # if  occ_map.map[i,j,k] == False:
 
                         # heapq.heappush(Q,(cost_to_come[i,j,k],[i,j,k]))
-                        # heuristic[i,j,k] = np.sqrt((goal_index[0]-i)**2+(goal_index[1]-j)**2 + (goal_index[2]-k)**2)
+        for i in range(occ_map.map.shape[0]):
+            for j in range(occ_map.map.shape[1]):
+                for k in range(occ_map.map.shape[2]):
+                    heuristic[i,j,k] = np.sqrt((goal_index[0]-i)**2+(goal_index[1]-j)**2 + (goal_index[2]-k)**2)
 
         cost_to_come[start_index[0],start_index[1],start_index[2]] = 0
         f = cost_to_come + heuristic
@@ -151,15 +154,16 @@ def graph_search(world, resolution, margin, start, goal, astar):
                             continue
                     else:
                         continue
-            if not occ_map.is_valid_index([new_x,new_y,new_z]):
-                pass
-            else: 
+                # if not occ_map.is_valid_index([new_x,new_y,new_z]):
+                #     pass
+                # else: 
                 d = cost_to_come[u_x,u_y,u_z ]+ np.sqrt(((new_x-u_x)*resolution[0])**2 + ((new_y-u_y)*resolution[1])**2+((new_z-u_z)*resolution[2])**2)
                 if d < cost_to_come[new_x,new_y,new_z]:
+                    cost_to_come[new_x,new_y,new_z]=d
                     f = cost_to_come + heuristic
                     heapq.heappush(Q,(f[new_x,new_y,new_z],[new_x,new_y,new_z]))
                     parent[new_x,new_y,new_z] = [u_x,u_y,u_z]
-                            
+                        
                             
                             
                         # if i==0 and j==0 and k==0:
@@ -543,31 +547,30 @@ def jump(x,y,z,dx,dy,dz):
 def hasForced(x,y,z,dx,dy,dz):
     norm1 = abs(dx) + abs(dy) + abs(dz)
     ID = (dx+1) + 3*(dy+1 ) + 9*(dz+1)
-    
     if norm1 == 1:
         for fn in range(8):
             nx = x + forced_to_check[ID][0][fn]
             ny = y + forced_to_check[ID][1][fn]
             nz = z + forced_to_check[ID][2][fn]
-            if (occ_map.is_occupied_index([nx,ny,nz])):
-                return True
-            return False
+            if not occ_map.is_valid_index([nx,ny,nz]) or occ_map.is_occupied_index([nx,ny,nz]):
+                    return True
+        return False
     if norm1 ==2:
         for fn in range(8):
             nx = x + forced_to_check[ID][0][fn]
             ny = y + forced_to_check[ID][1][fn]
             nz = z + forced_to_check[ID][2][fn]
-            if (occ_map.is_occupied_index([nx,ny,nz])):
-                return True
-            return False
+            if not occ_map.is_valid_index([nx,ny,nz]) or occ_map.is_occupied_index([nx,ny,nz]):
+                    return True
+        return False
     if norm1 ==3:
         for fn in range(6):
             nx = x + forced_to_check[ID][0][fn]
             ny = y + forced_to_check[ID][1][fn]
             nz = z + forced_to_check[ID][2][fn]
-            if (occ_map.is_occupied_index([nx,ny,nz])):
-                return True
-            return False
+            if not occ_map.is_valid_index([nx,ny,nz]) or occ_map.is_occupied_index([nx,ny,nz]):
+                    return True
+        return False
     return False
             
 
