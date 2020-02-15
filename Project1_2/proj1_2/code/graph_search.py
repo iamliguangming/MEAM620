@@ -114,6 +114,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
                     heuristic[i,j,k] = np.sqrt((goal_index[0]-i)**2+(goal_index[1]-j)**2 + (goal_index[2]-k)**2)
 
         cost_to_come[start_index[0],start_index[1],start_index[2]] = 0
+        parent[start_index[0],start_index[1],start_index[2],:] = start_index[0],start_index[1],start_index[2]
         f = cost_to_come + heuristic
         heapq.heappush(Q,(f[start_index[0],start_index[1],start_index[2]],[start_index[0],start_index[1],start_index[2]]))
         heapq.heappush(Q,(f[goal_index[0],goal_index[1],goal_index[2]],[goal_index[0],goal_index[1],goal_index[2]]))
@@ -128,8 +129,18 @@ def graph_search(world, resolution, margin, start, goal, astar):
             u_x = u_indicies[0]
             u_y = u_indicies[1]
             u_z = u_indicies[2]
-            # p_x,p_y,p_z= parent[int(u_x),int(u_y),int(u_z),:]
+            p_x,p_y,p_z= parent[int(u_x),int(u_y),int(u_z),:]
+            dif = np.array(u_indicies,dtype=int) - np.array([p_x,p_y,p_z],dtype =int)
+            for i in range(3):
+                if dif[i]==0:
+                    dif[i]=0
+                else:
+                    dif[i] = abs(dif[i])/dif[i]
+            dx,dy,dz = dif
+                
+                
 
+##dx dy dz not updated correctly
             norm1 = abs(np.array([dx,dy,dz])).sum()
             num_neib = current_situation[norm1][0]
             num_fneib = current_situation[norm1][1]
@@ -146,7 +157,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
                     nx = u_x + forced_to_check[ID][0][i-num_neib]
                     ny = u_y + forced_to_check[ID][1][i-num_neib]
                     nz = u_z + forced_to_check[ID][2][i-num_neib]
-                    if occ_map.is_occupied_index([nx,ny,nz]):
+                    if not occ_map.is_valid_index([nx,ny,nz]) or occ_map.is_occupied_index([nx,ny,nz]):
                         dx = forced_to_add[ID][0][i-num_neib]
                         dy = forced_to_add[ID][1][i-num_neib]
                         dz = forced_to_add[ID][2][i-num_neib]
@@ -163,6 +174,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
                     f = cost_to_come + heuristic
                     heapq.heappush(Q,(f[new_x,new_y,new_z],[new_x,new_y,new_z]))
                     parent[new_x,new_y,new_z] = [u_x,u_y,u_z]
+
                         
                             
                             
