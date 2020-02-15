@@ -1,6 +1,7 @@
 import heapq
 from heapq import heappush, heappop  # Recommended.
 import numpy as np
+import math
 
 from flightsim.world import World
 from occupancy_map import OccupancyMap # Recommended.
@@ -86,7 +87,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
                             pass
                         else:
 
-                            d = cost_to_come[u_x,u_y,u_z]+np.sqrt(i**2 + j**2 +k**2)
+                            d = cost_to_come[u_x,u_y,u_z]+math.sqrt(i**2 + j**2 +k**2)
                             if d < cost_to_come[u_x+i,u_y+j,u_z+k]:
                                 # start_time = time.time()
                                 # Q.remove((cost_to_come[u_x+i,u_y+j,u_z+k],[u_x+i,u_y+j,u_z+k]))
@@ -111,14 +112,14 @@ def graph_search(world, resolution, margin, start, goal, astar):
         for i in range(occ_map.map.shape[0]):
             for j in range(occ_map.map.shape[1]):
                 for k in range(occ_map.map.shape[2]):
-                    heuristic[i,j,k] = np.sqrt((goal_index[0]-i)**2+(goal_index[1]-j)**2 + (goal_index[2]-k)**2)
+                    heuristic[i,j,k] = math.sqrt((goal_index[0]-i)**2+(goal_index[1]-j)**2 + (goal_index[2]-k)**2)
 
         cost_to_come[start_index[0],start_index[1],start_index[2]] = 0
         parent[start_index[0],start_index[1],start_index[2],:] = start_index[0],start_index[1],start_index[2]
         f = cost_to_come + heuristic
         heapq.heappush(Q,(f[start_index[0],start_index[1],start_index[2]],[start_index[0],start_index[1],start_index[2]]))
         heapq.heappush(Q,(f[goal_index[0],goal_index[1],goal_index[2]],[goal_index[0],goal_index[1],goal_index[2]]))
-        dx,dy,dz = [0,0,0]
+        # dx,dy,dz = [0,0,0]
 
 
         # heapq.heapreplace(Q, (cost_to_come[start_index[0],start_index[1]],[start_index[0],start_index[1]]))
@@ -137,8 +138,8 @@ def graph_search(world, resolution, margin, start, goal, astar):
                 else:
                     dif[i] = abs(dif[i])/dif[i]
             dx,dy,dz = dif
-                
-                
+
+
 
 ##dx dy dz not updated correctly
             norm1 = abs(np.array([dx,dy,dz])).sum()
@@ -152,7 +153,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
                     dz = always_added[ID][2][i]
                     if not jump(u_x,u_y,u_z,dx,dy,dz):
                         continue
-                    
+
                 else:
                     nx = u_x + forced_to_check[ID][0][i-num_neib]
                     ny = u_y + forced_to_check[ID][1][i-num_neib]
@@ -167,17 +168,17 @@ def graph_search(world, resolution, margin, start, goal, astar):
                         continue
                 # if not occ_map.is_valid_index([new_x,new_y,new_z]):
                 #     pass
-                # else: 
-                d = cost_to_come[u_x,u_y,u_z ]+ np.sqrt(((new_x-u_x)*resolution[0])**2 + ((new_y-u_y)*resolution[1])**2+((new_z-u_z)*resolution[2])**2)
+                # else:
+                d = cost_to_come[u_x,u_y,u_z ]+ math.sqrt(((new_x-u_x)*resolution[0])**2 + ((new_y-u_y)*resolution[1])**2+((new_z-u_z)*resolution[2])**2)
                 if d < cost_to_come[new_x,new_y,new_z]:
                     cost_to_come[new_x,new_y,new_z]=d
                     f = cost_to_come + heuristic
                     heapq.heappush(Q,(f[new_x,new_y,new_z],[new_x,new_y,new_z]))
                     parent[new_x,new_y,new_z] = [u_x,u_y,u_z]
 
-                        
-                            
-                            
+
+
+
                         # if i==0 and j==0 and k==0:
                         #     pass
                         # else:
@@ -187,7 +188,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
                         # elif not occ_map.is_valid_index([u_x+i,u_y+j,u_z+k]) or occ_map.is_occupied_index([u_x+i,u_y+j,u_z+k]):
                         #     pass
                         # else:
-                        #     d = cost_to_come[u_x,u_y,u_z]+np.sqrt(i**2 + j**2 +k**2)
+                        #     d = cost_to_come[u_x,u_y,u_z]+math.sqrt(i**2 + j**2 +k**2)
                         #     if d < cost_to_come[u_x+i,u_y+j,u_z+k]:
                         #         cost_to_come[u_x+i,u_y+j,u_z+k] = d
                         #         f = cost_to_come + heuristic
@@ -527,7 +528,7 @@ def getNeibArray():
                     forced_to_check[ID][0][runs],forced_to_check[ID][1][runs],forced_to_check[ID][2][runs],forced_to_add[ID][0][runs],forced_to_add[ID][1][runs],forced_to_add[ID][2][runs]=getForcedN(dx, dy, dz, runs)
                 ID += 1
     return None
-                        
+
 
 
 def jump(x,y,z,dx,dy,dz):
@@ -544,18 +545,18 @@ def jump(x,y,z,dx,dy,dz):
     ID = (dx+1) + 3*(dy+1 ) + 9*(dz+1)
     norm1 = abs(dx) + abs(dy) + abs(dz)
     num_neib = current_situation[norm1][0]
-    
+
     for i in range(num_neib-1):
         if jump(new_x,new_y,new_z,always_added[ID][0][i],always_added[ID][1][i],always_added[ID][2][i]):
             return True
-    
+
     return jump(new_x,new_y,new_z,dx,dy,dz)
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
 def hasForced(x,y,z,dx,dy,dz):
     norm1 = abs(dx) + abs(dy) + abs(dz)
     ID = (dx+1) + 3*(dy+1 ) + 9*(dz+1)
@@ -584,7 +585,7 @@ def hasForced(x,y,z,dx,dy,dz):
                     return True
         return False
     return False
-            
+
 
     # if (norm == 0):
     #     for i in range(-1,2):

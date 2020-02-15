@@ -12,7 +12,7 @@ from graph_search import graph_search
 
 # Choose a test example file. You should write your own example files too!
 # filename = 'test_empty.json'
-filename = 'test_saw.json'
+filename = 'test_window.json'
 
 # Load the test example.
 file = Path(inspect.getsourcefile(lambda:0)).parent.resolve() / '..' / 'util' / filename
@@ -26,7 +26,7 @@ goal   = np.array(data['goal'])           # Goal point, shape=(3,)
 
 # Run your code and return the path.
 start_time = time.time()
-path = graph_search(world, resolution, margin, start, goal, astar=True)
+path = graph_search(world, resolution, margin, start, goal, astar=False)
 end_time = time.time()
 print(f'Solved in {end_time-start_time:.2f} seconds')
 
