@@ -134,6 +134,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
         while (f[goal_index[0],goal_index[1],goal_index[2]],[goal_index[0],goal_index[1],goal_index[2]]) in Q and min(Q)[0] < np.inf:
 
             u_indicies = heapq.heappop(Q)[1]
+            # print(u_indicies)
             u_x = u_indicies[0]
             u_y = u_indicies[1]
             u_z = u_indicies[2]
@@ -160,7 +161,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
                     dx = always_added[ID][0][i]
                     dy = always_added[ID][1][i]
                     dz = always_added[ID][2][i]
-                    if not jump(u_x,u_y,u_z,dx,dy,dz):
+                    if not jump(u_x,u_y,u_z,dx,dy,dz,True):
                         continue
 
                 else:
@@ -171,7 +172,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
                         dx = forced_to_add[ID][0][i-num_neib]
                         dy = forced_to_add[ID][1][i-num_neib]
                         dz = forced_to_add[ID][2][i-num_neib]
-                        if not jump(u_x,u_y,u_z,dx,dy,dz):
+                        if not jump(u_x,u_y,u_z,dx,dy,dz,True):
                             continue
                     else:
                         continue
@@ -218,7 +219,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
     while [current_X,current_Y,current_Z] != [start_index[0],start_index[1],start_index[2]]:
         path.insert(0,occ_map.index_to_metric_center([current_X,current_Y,current_Z]))
         [current_X,current_Y,current_Z] = parent[int(current_X),int(current_Y),int(current_Z),:]
-    path.insert(0,occ_map.index_to_metric_center(start_index))
+    # path.insert(0,occ_map.index_to_metric_center(start_index))
     path.insert(0,start)
     path.append(goal)
 
@@ -540,7 +541,7 @@ def getNeibArray():
 
 
 
-def jump(x,y,z,dx,dy,dz):
+def jump(x,y,z,dx,dy,dz,status):
     global new_x_g, new_y_g,new_z_g
     new_x = x + dx
     new_y = y+ dy
@@ -550,7 +551,7 @@ def jump(x,y,z,dx,dy,dz):
     if new_x == goal_index[0] and new_y == goal_index[1] and new_z == goal_index[2]:
         new_x_g,new_y_g,new_z_g= new_x,new_y,new_z
         return True
-    if (hasForced(new_x,new_y,new_z,dx,dy,dz)):
+    if (hasForced(new_x,new_y,new_z,dx,dy,dz,status)):
         new_x_g,new_y_g,new_z_g= new_x,new_y,new_z
         return True
     new_x_g,new_y_g,new_z_g= new_x,new_y,new_z
@@ -561,18 +562,18 @@ def jump(x,y,z,dx,dy,dz):
 
     for i in range(num_neib-1):
         new_new_x,new_new_y,new_new_z = new_x,new_y,new_z
-        if jump(new_new_x,new_new_y,new_new_z,always_added[ID][0][i],always_added[ID][1][i],always_added[ID][2][i]):
+        if jump(new_new_x,new_new_y,new_new_z,always_added[ID][0][i],always_added[ID][1][i],always_added[ID][2][i],False):
             new_x_g,new_y_g,new_z_g= new_x,new_y,new_z
             return True
 
-    return jump(new_x,new_y,new_z,dx,dy,dz)
+    return jump(new_x,new_y,new_z,dx,dy,dz,True)
 
 
 
 
 
 
-def hasForced(x,y,z,dx,dy,dz):
+def hasForced(x,y,z,dx,dy,dz,status):
     norm1 = abs(dx) + abs(dy) + abs(dz)
     ID = (dx+1) + 3*(dy+1 ) + 9*(dz+1)
     if norm1 == 1:
@@ -580,7 +581,13 @@ def hasForced(x,y,z,dx,dy,dz):
             nx = x + forced_to_check[ID][0][fn]
             ny = y + forced_to_check[ID][1][fn]
             nz = z + forced_to_check[ID][2][fn]
-            if not occ_map.is_valid_index([nx,ny,nz]) or occ_map.is_occupied_index([nx,ny,nz]):
+            if status:
+                if not occ_map.is_valid_index([nx,ny,nz]) or occ_map.is_occupied_index([nx,ny,nz]):
+                        return True
+            else:
+                if not occ_map.is_valid_index([nx,ny,nz]):
+                    return False
+                elif occ_map.is_occupied_index([nx,ny,nz]):
                     return True
         return False
     if norm1 ==2:
@@ -588,7 +595,13 @@ def hasForced(x,y,z,dx,dy,dz):
             nx = x + forced_to_check[ID][0][fn]
             ny = y + forced_to_check[ID][1][fn]
             nz = z + forced_to_check[ID][2][fn]
-            if not occ_map.is_valid_index([nx,ny,nz]) or occ_map.is_occupied_index([nx,ny,nz]):
+            if status:
+                if not occ_map.is_valid_index([nx,ny,nz]) or occ_map.is_occupied_index([nx,ny,nz]):
+                        return True
+            else:
+                if not occ_map.is_valid_index([nx,ny,nz]):
+                    return False
+                elif occ_map.is_occupied_index([nx,ny,nz]):
                     return True
         return False
     if norm1 ==3:
@@ -596,7 +609,13 @@ def hasForced(x,y,z,dx,dy,dz):
             nx = x + forced_to_check[ID][0][fn]
             ny = y + forced_to_check[ID][1][fn]
             nz = z + forced_to_check[ID][2][fn]
-            if not occ_map.is_valid_index([nx,ny,nz]) or occ_map.is_occupied_index([nx,ny,nz]):
+            if status:
+                if not occ_map.is_valid_index([nx,ny,nz]) or occ_map.is_occupied_index([nx,ny,nz]):
+                        return True
+            else:
+                if not occ_map.is_valid_index([nx,ny,nz]):
+                    return False
+                elif occ_map.is_occupied_index([nx,ny,nz]):
                     return True
         return False
     return False
