@@ -42,14 +42,21 @@ def graph_search(world, resolution, margin, start, goal, astar):
     start_index = tuple(occ_map.metric_to_index(start))
     goal_index = tuple(occ_map.metric_to_index(goal))
     poped_Nodes = 0
+    visited_Points = set()
 
     occ_map.create_map_from_world
     Q = []
 
     cost_to_come = np.full((occ_map.map.shape[0],occ_map.map.shape[1],occ_map.map.shape[2]),np.inf)
-    parent = np.zeros((occ_map.map.shape[0],occ_map.map.shape[1],occ_map.map.shape[2],3),dtype = int)
+    heuristic = np.zeros((occ_map.map.shape[0],occ_map.map.shape[1],occ_map.map.shape[2]))
+
+    parent = np.zeros((occ_map.map.shape[0],occ_map.map.shape[1],occ_map.map.shape[2],3))
 
 
+
+
+
+    if astar == False:
 
 
 

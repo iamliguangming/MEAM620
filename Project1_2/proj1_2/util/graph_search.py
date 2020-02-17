@@ -2,7 +2,6 @@ import heapq
 from heapq import heappush, heappop  # Recommended.
 import numpy as np
 import math
-
 from flightsim.world import World
 from occupancy_map import OccupancyMap # Recommended.
 
@@ -36,6 +35,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
     # Retrieve the index in the occupancy grid matrix corresponding to a position in space.
     start_index = tuple(occ_map.metric_to_index(start))
     goal_index = tuple(occ_map.metric_to_index(goal))
+    visited_Points = set()
 
     occ_map.create_map_from_world
 
@@ -45,6 +45,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
     heuristic = np.zeros((occ_map.map.shape[0],occ_map.map.shape[1],occ_map.map.shape[2]))
 
     parent = np.zeros((occ_map.map.shape[0],occ_map.map.shape[1],occ_map.map.shape[2],3),dtype = int)
+
 
 
 
@@ -194,6 +195,19 @@ def graph_search(world, resolution, margin, start, goal, astar):
                         #         f = cost_to_come + heuristic
                         #         heapq.heappush(Q,(f[u_x+i,u_y+j,u_z+k],[u_x+i,u_y+j,u_z+k]))
                         #         parent[u_x+i,u_y+j,u_z+k,:] = [u_x,u_y,u_z]
+            visited_Points.add((u_x,u_y,u_z))
+            for i in range(-1,2):
+                for j in range(-1,2):
+                    for k in range(-1,2):
+                        if not occ_map.is_valid_index([u_x+i,u_y+j,u_z+k]) or occ_map.is_occupied_index([u_x+i,u_y+j,u_z+k]) or (u_x+i,u_y+j,u_z+k) in visited_Points:
+                            pass
+                        else:
+                            d = cost_to_come[u_x,u_y,u_z]+math.sqrt(i**2 + j**2 +k**2)
+                            if d < cost_to_come[u_x+i,u_y+j,u_z+k]:
+                                cost_to_come[u_x+i,u_y+j,u_z+k] = d
+                                f = cost_to_come + heuristic
+                                heapq.heappush(Q,(f[u_x+i,u_y+j,u_z+k],[u_x+i,u_y+j,u_z+k]))
+                                parent[u_x+i,u_y+j,u_z+k,:] = [u_x,u_y,u_z]
                 # print([u_x,u_y,u_z])
     current_X = goal_index[0]
     current_Y = goal_index[1]
