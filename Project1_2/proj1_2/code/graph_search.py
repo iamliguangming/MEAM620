@@ -27,7 +27,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
 
     global occ_map, start_index, goal_index
     global always_added,forced_to_add,forced_to_check,current_situation
-    global new_x_g, new_y_g, new_z_g
+    global new_x_g, new_y_g, new_z_g,u_x,u_y,u_z,cost_to_come,f,Q,parent
     getNeibArray()
 
     
@@ -138,6 +138,8 @@ def graph_search(world, resolution, margin, start, goal, astar):
             u_x = u_indicies[0]
             u_y = u_indicies[1]
             u_z = u_indicies[2]
+            if [u_x,u_y,u_z] == [19,39,4]:
+                pass
             p_x,p_y,p_z= parent[int(u_x),int(u_y),int(u_z),:]
             dif = np.array(u_indicies,dtype=int) - np.array([p_x,p_y,p_z],dtype =int)
             for i in range(3):
@@ -168,7 +170,9 @@ def graph_search(world, resolution, margin, start, goal, astar):
                     nx = u_x + forced_to_check[ID][0][i-num_neib]
                     ny = u_y + forced_to_check[ID][1][i-num_neib]
                     nz = u_z + forced_to_check[ID][2][i-num_neib]
-                    if not occ_map.is_valid_index([nx,ny,nz]) or occ_map.is_occupied_index([nx,ny,nz]):
+                    if not occ_map.is_valid_index([nx,ny,nz]):
+                      continue
+                    elif occ_map.is_occupied_index([nx,ny,nz]):
                         dx = forced_to_add[ID][0][i-num_neib]
                         dy = forced_to_add[ID][1][i-num_neib]
                         dz = forced_to_add[ID][2][i-num_neib]
@@ -312,210 +316,210 @@ def getForcedN(dx,dy,dz, runs):
         elif runs == 7: fx=-1; fy=-1; fz = 0
         nx,ny,nz = fx,fy,fz
         if(dx != 0):
-            fz = fx; fx = 0;
+            fz = fx; fx = 0
             nz = fz; nx = dx
         if(dy != 0):
-            fz = fy; fy = 0;
+            fz = fy; fy = 0
             nz = fz; ny = dy
     elif norm == 2:
         if dx == 0:
           if runs == 0:
-            fx = 0; fy = 0; fz = -dz;
-            nx = 0; ny = dy; nz = -dz;
+            fx = 0; fy = 0; fz = -dz
+            nx = 0; ny = dy; nz = -dz
 
           elif runs == 1:
-            fx = 0; fy = -dy; fz = 0;
-            nx = 0; ny = -dy; nz = dz;
+            fx = 0; fy = -dy; fz = 0
+            nx = 0; ny = -dy; nz = dz
 
           elif runs == 2:
-            fx = 1; fy = 0; fz = 0;
-            nx = 1; ny = dy; nz = dz;
+            fx = 1; fy = 0; fz = 0
+            nx = 1; ny = dy; nz = dz
 
           elif runs == 3:
-            fx = -1; fy = 0; fz = 0;
-            nx = -1; ny = dy; nz = dz;
+            fx = -1; fy = 0; fz = 0
+            nx = -1; ny = dy; nz = dz
 
           elif runs == 4:
-            fx = 1; fy = 0; fz = -dz;
-            nx = 1; ny = dy; nz = -dz;
+            fx = 1; fy = 0; fz = -dz
+            nx = 1; ny = dy; nz = -dz
 
           elif runs == 5:
-            fx = 1; fy = -dy; fz = 0;
-            nx = 1; ny = -dy; nz = dz;
+            fx = 1; fy = -dy; fz = 0
+            nx = 1; ny = -dy; nz = dz
 
           elif runs == 6:
-            fx = -1; fy = 0; fz = -dz;
-            nx = -1; ny = dy; nz = -dz;
+            fx = -1; fy = 0; fz = -dz
+            nx = -1; ny = dy; nz = -dz
 
           elif runs == 7:
-            fx = -1; fy = -dy; fz = 0;
-            nx = -1; ny = -dy; nz = dz;
+            fx = -1; fy = -dy; fz = 0
+            nx = -1; ny = -dy; nz = dz
 
 
           elif runs == 8:
-            fx = 1; fy = 0; fz = 0;
-            nx = 1; ny = dy; nz = 0;
+            fx = 1; fy = 0; fz = 0
+            nx = 1; ny = dy; nz = 0
 
           elif runs == 9:
-            fx = 1; fy = 0; fz = 0;
-            nx = 1; ny = 0; nz = dz;
+            fx = 1; fy = 0; fz = 0
+            nx = 1; ny = 0; nz = dz
 
           elif runs == 10:
-            fx = -1; fy = 0; fz = 0;
-            nx = -1; ny = dy; nz = 0;
+            fx = -1; fy = 0; fz = 0
+            nx = -1; ny = dy; nz = 0
 
           elif runs == 11:
-            fx = -1; fy = 0; fz = 0;
-            nx = -1; ny = 0; nz = dz;
+            fx = -1; fy = 0; fz = 0
+            nx = -1; ny = 0; nz = dz
 
         elif dy ==0:
           if runs == 0:
-            fx = 0; fy = 0; fz = -dz;
-            nx = dx; ny = 0; nz = -dz;
+            fx = 0; fy = 0; fz = -dz
+            nx = dx; ny = 0; nz = -dz
 
           elif runs == 1:
-            fx = -dx; fy = 0; fz = 0;
-            nx = -dx; ny = 0; nz = dz;
+            fx = -dx; fy = 0; fz = 0
+            nx = -dx; ny = 0; nz = dz
 
           elif runs == 2:
-            fx = 0; fy = 1; fz = 0;
-            nx = dx; ny = 1; nz = dz;
+            fx = 0; fy = 1; fz = 0
+            nx = dx; ny = 1; nz = dz
 
           elif runs == 3:
-            fx = 0; fy = -1; fz = 0;
-            nx = dx; ny = -1;nz = dz;
+            fx = 0; fy = -1; fz = 0
+            nx = dx; ny = -1;nz = dz
 
           elif runs == 4:
-            fx = 0; fy = 1; fz = -dz;
-            nx = dx; ny = 1; nz = -dz;
+            fx = 0; fy = 1; fz = -dz
+            nx = dx; ny = 1; nz = -dz
 
           elif runs == 5:
-            fx = -dx; fy = 1; fz = 0;
-            nx = -dx; ny = 1; nz = dz;
+            fx = -dx; fy = 1; fz = 0
+            nx = -dx; ny = 1; nz = dz
 
           elif runs == 6:
-            fx = 0; fy = -1; fz = -dz;
-            nx = dx; ny = -1; nz = -dz;
+            fx = 0; fy = -1; fz = -dz
+            nx = dx; ny = -1; nz = -dz
 
           elif runs == 7:
-            fx = -dx; fy = -1; fz = 0;
-            nx = -dx; ny = -1; nz = dz;
+            fx = -dx; fy = -1; fz = 0
+            nx = -dx; ny = -1; nz = dz
 
           # // Extras
           elif runs == 8:
-            fx = 0; fy = 1; fz = 0;
-            nx = dx; ny = 1; nz = 0;
+            fx = 0; fy = 1; fz = 0
+            nx = dx; ny = 1; nz = 0
 
           elif runs == 9:
-            fx = 0; fy = 1; fz = 0;
-            nx = 0; ny = 1; nz = dz;
+            fx = 0; fy = 1; fz = 0
+            nx = 0; ny = 1; nz = dz
 
           elif runs == 10:
-            fx = 0; fy = -1; fz = 0;
-            nx = dx; ny = -1; nz = 0;
+            fx = 0; fy = -1; fz = 0
+            nx = dx; ny = -1; nz = 0
 
           elif runs == 11:
-            fx = 0; fy = -1; fz = 0;
-            nx = 0; ny = -1; nz = dz;
+            fx = 0; fy = -1; fz = 0
+            nx = 0; ny = -1; nz = dz
         else:
           if runs == 0:
-            fx = 0; fy = -dy; fz = 0;
-            nx = dx; ny = -dy; nz = 0;
+            fx = 0; fy = -dy; fz = 0
+            nx = dx; ny = -dy; nz = 0
 
           elif runs == 1:
-            fx = -dx; fy = 0; fz = 0;
-            nx = -dx; ny = dy; nz = 0;
+            fx = -dx; fy = 0; fz = 0
+            nx = -dx; ny = dy; nz = 0
 
           elif runs == 2:
-            fx =  0; fy = 0; fz = 1;
-            nx = dx; ny = dy; nz = 1;
+            fx =  0; fy = 0; fz = 1
+            nx = dx; ny = dy; nz = 1
 
           elif runs == 3:
-            fx =  0; fy = 0; fz = -1;
-            nx = dx; ny = dy; nz = -1;
+            fx =  0; fy = 0; fz = -1
+            nx = dx; ny = dy; nz = -1
 
           elif runs == 4:
-            fx = 0; fy = -dy; fz = 1;
-            nx = dx; ny = -dy; nz = 1;
+            fx = 0; fy = -dy; fz = 1
+            nx = dx; ny = -dy; nz = 1
 
           elif runs == 5:
-            fx = -dx; fy = 0; fz = 1;
-            nx = -dx; ny = dy; nz = 1;
+            fx = -dx; fy = 0; fz = 1
+            nx = -dx; ny = dy; nz = 1
 
           elif runs == 6:
-            fx = 0; fy = -dy; fz = -1;
-            nx = dx; ny = -dy; nz = -1;
+            fx = 0; fy = -dy; fz = -1
+            nx = dx; ny = -dy; nz = -1
 
           elif runs == 7:
-            fx = -dx; fy = 0; fz = -1;
-            nx = -dx; ny = dy; nz = -1;
+            fx = -dx; fy = 0; fz = -1
+            nx = -dx; ny = dy; nz = -1
 
 
           elif runs == 8:
-            fx =  0; fy = 0; fz = 1;
-            nx = dx; ny = 0; nz = 1;
+            fx =  0; fy = 0; fz = 1
+            nx = dx; ny = 0; nz = 1
 
           elif runs == 9:
-            fx = 0; fy = 0; fz = 1;
-            nx = 0; ny = dy; nz = 1;
+            fx = 0; fy = 0; fz = 1
+            nx = 0; ny = dy; nz = 1
 
           elif runs == 10:
-            fx =  0; fy = 0; fz = -1;
-            nx = dx; ny = 0; nz = -1;
+            fx =  0; fy = 0; fz = -1
+            nx = dx; ny = 0; nz = -1
 
           elif runs == 11:
-            fx = 0; fy = 0; fz = -1;
-            nx = 0; ny = dy; nz = -1;
+            fx = 0; fy = 0; fz = -1
+            nx = 0; ny = dy; nz = -1
     elif norm ==3:
         if runs == 0:
-          fx = -dx; fy = 0; fz = 0;
-          nx = -dx; ny = dy; nz = dz;
+          fx = -dx; fy = 0; fz = 0
+          nx = -dx; ny = dy; nz = dz
 
         elif runs == 1:
-          fx = 0; fy = -dy; fz = 0;
-          nx = dx; ny = -dy; nz = dz;
+          fx = 0; fy = -dy; fz = 0
+          nx = dx; ny = -dy; nz = dz
 
         elif runs == 2:
-          fx = 0; fy = 0; fz = -dz;
-          nx = dx; ny = dy; nz = -dz;
+          fx = 0; fy = 0; fz = -dz
+          nx = dx; ny = dy; nz = -dz
 
         # // Need to check up to here for forced!
         elif runs == 3:
-          fx = 0; fy = -dy; fz = -dz;
-          nx = dx; ny = -dy; nz = -dz;
+          fx = 0; fy = -dy; fz = -dz
+          nx = dx; ny = -dy; nz = -dz
 
         elif runs == 4:
-          fx = -dx; fy = 0; fz = -dz;
-          nx = -dx; ny = dy; nz = -dz;
+          fx = -dx; fy = 0; fz = -dz
+          nx = -dx; ny = dy; nz = -dz
 
         elif runs == 5:
-          fx = -dx; fy = -dy; fz = 0;
-          nx = -dx; ny = -dy; nz = dz;
+          fx = -dx; fy = -dy; fz = 0
+          nx = -dx; ny = -dy; nz = dz
 
         # // Extras
         elif runs == 6:
-          fx = -dx; fy = 0; fz = 0;
-          nx = -dx; ny = 0; nz = dz;
+          fx = -dx; fy = 0; fz = 0
+          nx = -dx; ny = 0; nz = dz
 
         elif runs == 7:
-          fx = -dx; fy = 0; fz = 0;
-          nx = -dx; ny = dy; nz = 0;
+          fx = -dx; fy = 0; fz = 0
+          nx = -dx; ny = dy; nz = 0
 
         elif runs == 8:
-          fx = 0; fy = -dy; fz = 0;
-          nx = 0; ny = -dy; nz = dz;
+          fx = 0; fy = -dy; fz = 0
+          nx = 0; ny = -dy; nz = dz
 
         elif runs == 9:
-          fx = 0; fy = -dy; fz = 0;
-          nx = dx; ny = -dy; nz = 0;
+          fx = 0; fy = -dy; fz = 0
+          nx = dx; ny = -dy; nz = 0
 
         elif runs == 10:
-          fx = 0; fy = 0; fz = -dz;
-          nx = 0; ny = dy; nz = -dz;
+          fx = 0; fy = 0; fz = -dz
+          nx = 0; ny = dy; nz = -dz
 
         elif runs == 11:
-          fx = 0; fy = 0; fz = -dz;
-          nx = dx; ny = 0; nz = -dz;
+          fx = 0; fy = 0; fz = -dz
+          nx = dx; ny = 0; nz = -dz
     return [fx,fy,fz,nx,ny,nz]
 
 
@@ -551,7 +555,7 @@ def jump(x,y,z,dx,dy,dz,status):
     if new_x == goal_index[0] and new_y == goal_index[1] and new_z == goal_index[2]:
         new_x_g,new_y_g,new_z_g= new_x,new_y,new_z
         return True
-    if (hasForced(new_x,new_y,new_z,dx,dy,dz,status)):
+    if (hasForced(new_x,new_y,new_z,dx,dy,dz,False)):
         new_x_g,new_y_g,new_z_g= new_x,new_y,new_z
         return True
     new_x_g,new_y_g,new_z_g= new_x,new_y,new_z
@@ -559,12 +563,11 @@ def jump(x,y,z,dx,dy,dz,status):
     norm1 = abs(dx) + abs(dy) + abs(dz)
     num_neib = current_situation[norm1][0]
 
-
     for i in range(num_neib-1):
-        new_new_x,new_new_y,new_new_z = new_x,new_y,new_z
-        if jump(new_new_x,new_new_y,new_new_z,always_added[ID][0][i],always_added[ID][1][i],always_added[ID][2][i],False):
-            new_x_g,new_y_g,new_z_g= new_x,new_y,new_z
-            return True
+          new_new_x,new_new_y,new_new_z = new_x,new_y,new_z
+          if jump(new_new_x,new_new_y,new_new_z,always_added[ID][0][i],always_added[ID][1][i],always_added[ID][2][i],False):
+              new_x_g,new_y_g,new_z_g= new_x,new_y,new_z
+              return True
 
     return jump(new_x,new_y,new_z,dx,dy,dz,True)
 
