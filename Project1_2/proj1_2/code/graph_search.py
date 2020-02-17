@@ -29,6 +29,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
     # Retrieve the index in the occupancy grid matrix corresponding to a position in space.
     start_index = tuple(occ_map.metric_to_index(start))
     goal_index = tuple(occ_map.metric_to_index(goal))
+    visited_Points = set()
 
     occ_map.create_map_from_world
 
@@ -119,12 +120,11 @@ def graph_search(world, resolution, margin, start, goal, astar):
             u_x = u_indicies[0]
             u_y = u_indicies[1]
             u_z = u_indicies[2]
+            visited_Points.add((u_x,u_y,u_z))
             for i in range(-1,2):
                 for j in range(-1,2):
                     for k in range(-1,2):
-                        if i==0 and j==0 and k==0:
-                            pass
-                        elif not occ_map.is_valid_index([u_x+i,u_y+j,u_z+k]) or occ_map.is_occupied_index([u_x+i,u_y+j,u_z+k]):
+                        if not occ_map.is_valid_index([u_x+i,u_y+j,u_z+k]) or occ_map.is_occupied_index([u_x+i,u_y+j,u_z+k]) or (u_x+i,u_y+j,u_z+k) in visited_Points:
                             pass
                         else:
                             d = cost_to_come[u_x,u_y,u_z]+math.sqrt(i**2 + j**2 +k**2)

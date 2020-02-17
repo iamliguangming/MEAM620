@@ -1,6 +1,6 @@
 {
     "dijkstra": {
-        "time": 0.037,
+        "time": 0.013,
         "path_length": 7.878,
         "reached_start": true,
         "reached_goal": true,
