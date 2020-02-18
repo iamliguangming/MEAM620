@@ -3,7 +3,7 @@ from heapq import heappush, heappop  # Recommended.
 import numpy as np
 import math
 from flightsim.world import World
-from occupancy_map import OccupancyMap # Recommended.
+from proj1_2.code.occupancy_map import OccupancyMap # Recommended.
 
 def graph_search(world, resolution, margin, start, goal, astar):
     """
