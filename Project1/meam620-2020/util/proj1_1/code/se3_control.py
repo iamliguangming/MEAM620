@@ -133,7 +133,7 @@ class SE3Control(object):
         #         cmd_force[i] = 0
         cmd_motor_speeds = np.sqrt(np.matmul(np.linalg.inv(Matrix_u), u)/self.k_thrust)
         cmd_thrust  = np.matmul(np.linalg.inv(Matrix_u), u)
-        cmd_q = np.array([0,0,0,1])
+        cmd_q = Rotation.from_matrix(R_des).as_quat()
 
 
         
