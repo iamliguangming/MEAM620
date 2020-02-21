@@ -45,8 +45,8 @@ class SE3Control(object):
         # self.Kd_theta = 0.0005
         # self.Kp_psi = 0.005
         # self.Kd_psi = 0.0005
-        self.Kr = np.diag(np.array([80,80,80]))
-        self.Kw = np.diag(np.array([7,7,7]))
+        self.Kr = np.diag(np.array([80,80,8]))
+        self.Kw = np.diag(np.array([7,7,0.7]))
         # self.Kr = np.diag(np.array([1,1,1]))
         # self.Kw = np.diag(np.array([0.001,0.001,0.001]))
 
@@ -132,6 +132,8 @@ class SE3Control(object):
         #     if cmd_force[i] < 0:
         #         cmd_force[i] = 0
         cmd_motor_speeds = np.sqrt(np.matmul(np.linalg.inv(Matrix_u), u)/self.k_thrust)
+        cmd_thrust  = np.matmul(np.linalg.inv(Matrix_u), u)
+        cmd_q = np.array([0,0,0,1])
 
 
         
