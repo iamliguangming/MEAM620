@@ -30,10 +30,18 @@ class SE3Control(object):
         self.rotor_speed_max = quad_params['rotor_speed_max'] # rad/s
         self.k_thrust        = quad_params['k_thrust'] # N/(rad/s)**2
         self.k_drag          = quad_params['k_drag']   # Nm/(rad/s)**2
+        self.gamma  = self.k_drag / self.k_thrust 
 
         # You may define any additional constants you like including control gains.
         self.inertia = np.diag(np.array([self.Ixx, self.Iyy, self.Izz])) # kg*m^2
         self.g = 9.81 # m/s^2
+        self.Kd = np.diag(np.array([3.4,3.4,3.4]))
+        self.Kp = np.diag(np.array([4,4,4]))
+        # self.Kd = np.diag(np.array([1,1,1]))
+        # self.Kp = np.diag(np.array([1,1,1    ]))
+        self.g = 9.81 # m/s^2
+        self.Kr = np.diag(np.array([80,80,8]))
+        self.Kw = np.diag(np.array([7,7,0.7]))
 
         # STUDENT CODE HERE
 
@@ -66,10 +74,59 @@ class SE3Control(object):
                 cmd_q, quaternion [i,j,k,w] (for laboratory; not used by simulator)
         """
         cmd_motor_speeds = np.zeros((4,))
-        cmd_thrust = 0
+        cmd_thrust = 0  
         cmd_moment = np.zeros((3,))
         cmd_q = np.zeros((4,))
+        
+        rAB = Rotation.from_quat(state['q']).as_matrix()    
+        x_ddot_des = flat_output['x_ddot'] - np.matmul(self.Kd,state['v']-flat_output['x_dot'])- np.matmul(self.Kp,state['x']-flat_output['x'])
+        
+        # u_1 = self.mass*(x_ddot_des[2]+self.g)
+        # theta_des = 1/2 * (x_ddot_des[0]+x_ddot_des[1])/self.g/np.sin(flat_output['yaw'])
+        # phi_des = 1/2 * (x_ddot_des[0] - x_ddot_des[1])/self.g/np.sin(flat_output['yaw'])
+        # psi_des = flat_output['yaw']
+        
+        # phi, theta, psi =  Rotation.from_quat(state['q']).as_euler('XYZ')
+        
+        
+        
+        # u_2 = np.matmul(self.inertia,np.array([-self.Kp_phi*(phi-phi_des)-self.Kd_phi*(state['w'][0]),-self.Kp_theta*(theta-theta_des)-self.Kd_theta*(state['w'][1]),-self.Kp_psi*(psi-psi_des)-self.Kd_psi*(state['w'][2])]))
+        F_des = self.mass * x_ddot_des + np.array([0,0,self.mass * self.g])
+        u_1 = np.inner(np.matmul(rAB,np.array([0,0,1])),F_des)
+        b3_des = F_des / np.linalg.norm(F_des)
+        a_psi = np.array([np.cos(flat_output['yaw']),np.sin(flat_output['yaw']),0])
+        b2_des = np.cross(b3_des,a_psi)/np.linalg.norm(np.cross(b3_des,a_psi))
+        
+        R_des = np.zeros((3,3))
+        R_des[:,0] = np.cross(b2_des,b3_des)
+        R_des[:,1] = b2_des
+        R_des[:,2] = b3_des
+        
+        
+        e_R_Matrix= 1/2 * (np.dot(np.transpose(R_des),rAB)-np.dot(np.transpose(rAB),R_des))
+        
+        e_R = np.zeros((3,))
+        e_R[0] = e_R_Matrix[2,1]
+        e_R[1] = e_R_Matrix[0,2]
+        e_R[2] = e_R_Matrix[1,0]
+        
+        
+        w_des = np.zeros((3,))
+        e_w = state['w'] - w_des
+        
+        u_2 = np.zeros((3,))
+        u_2 = np.matmul(self.inertia,(-np.matmul(self.Kr,e_R)-np.matmul(self.Kw,e_w)))
 
+        
+        u = np.append([u_1],u_2)
+        Matrix_u = np.array([[1,1,1,1],[0,self.arm_length,0,-self.arm_length],[-self.arm_length,0,self.arm_length,0],[self.gamma,-self.gamma,self.gamma,-self.gamma]])
+        
+        # for i in range(len(cmd_force)):
+        #     if cmd_force[i] < 0:
+        #         cmd_force[i] = 0
+        cmd_motor_speeds = np.sqrt(np.matmul(np.linalg.inv(Matrix_u), u)/self.k_thrust)
+        cmd_thrust  = np.matmul(np.linalg.inv(Matrix_u), u)
+        cmd_q = Rotation.from_matrix(R_des).as_quat()
         # STUDENT CODE HERE
 
         control_input = {'cmd_motor_speeds':cmd_motor_speeds,

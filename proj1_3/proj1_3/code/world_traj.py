@@ -40,6 +40,16 @@ class WorldTraj(object):
         # too close together. Store these waypoints as a class member; you will
         # need it for debugging and it will be used when plotting results.
         self.points = np.zeros((1,3)) # shape=(n_pts,3)
+        last_direction = np.zeros(3)
+        for i in range(len(self.path)-1): 
+            direction = (self.path[i+1] - self.path[i])/np.linalg.norm(self.path[i+1] - self.path[i])
+            if direction != last_direction:
+                self.points = np.append(self.points,self.path[i])
+            last_direction = direction
+            
+                
+                
+
 
         # Finally, you must compute a trajectory through the waypoints similar
         # to your task in the first project. One possibility is to use the
