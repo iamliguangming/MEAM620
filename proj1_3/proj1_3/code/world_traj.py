@@ -3,6 +3,8 @@ import numpy as np
 from proj1_3.code.graph_search import graph_search
 
 class WorldTraj(object):
+    max_Velocity = 0.5
+    max_Acceleration = 3
     """
 
     """
@@ -42,10 +44,27 @@ class WorldTraj(object):
         self.points = np.zeros((1,3)) # shape=(n_pts,3)
         last_direction = np.zeros(3)
         for i in range(len(self.path)-1): 
-            direction = (self.path[i+1] - self.path[i])/np.linalg.norm(self.path[i+1] - self.path[i])
-            if direction != last_direction:
-                self.points = np.append(self.points,self.path[i])
+            direction = self.path[i+1] - self.path[i]
+            if not (direction == last_direction).all():
+                self.points = np.append(self.points,[self.path[i]],axis=0)
             last_direction = direction
+        self.points = np.append(self.points,[self.path[-1]],axis=0)
+        self.points = self.points[1:,:]
+        print(self.points)
+        self.point_List = []
+        self.trajectory_List = []
+        self.direction_List = []
+        self.time_List = [0]
+        self.real_time_List = [0]
+        self.hover_interval = 0
+        
+        for i in range(self.points.shape[0]):
+            self.point_List.append(self.points[i,:])
+        for i in range(len(self.point_List)-1):
+            self.trajectory_List.append(self.point_List[i+1]-self.point_List[i])
+            self.direction_List.append(self.trajectory_List[i]/np.linalg.norm(self.trajectory_List[i]))
+            self.real_time_List.append(self.time_List[i]+2*np.sqrt(np.linalg.norm(self.trajectory_List[i])/self.max_Acceleration))
+            self.time_List.append(self.real_time_List[i+1]+self.hover_interval)
             
                 
                 
@@ -82,7 +101,26 @@ class WorldTraj(object):
         x_ddddot = np.zeros((3,))
         yaw = 0
         yaw_dot = 0
-
+        
+        if t > self.time_List[-1]:
+            x = self.point_List[-1]
+            x_dot = np.zeros((3,))
+            x_ddot = np.zeros((3,))
+            yaw = 0
+        elif t <= self.time_List[-1]:
+            for i in range(len(self.time_List)-1):
+                if t>=self.time_List[i] and t<self.time_List[i+1]:
+                    if t > self.time_List[i+1]-self.hover_interval and t < self.time_List[i+1]:
+                        x = self.point_List[i+1]
+                        x_ddot = np.zeros((3,))
+                    elif t-self.time_List[i] <= self.time_List[i+1]-self.hover_interval-t:
+                        x_ddot = self.direction_List[i] * self.max_Acceleration
+                        x_dot = x_ddot * (t-self.time_List[i])
+                        x = self.point_List[i] + 1/2* x_ddot*(t-self.time_List[i])**2
+                    elif t-self.time_List[i] > self.time_List[i+1]-t-self.hover_interval:
+                        x_ddot = -self.direction_List[i] * self.max_Acceleration
+                        x_dot = -x_ddot*(self.time_List[i+1]-self.hover_interval-t)
+                        x = self.point_List[i+1] + 1/2* x_ddot*(self.time_List[i+1]-self.hover_interval-t)**2
         # STUDENT CODE HERE
 
         flat_output = { 'x':x, 'x_dot':x_dot, 'x_ddot':x_ddot, 'x_dddot':x_dddot, 'x_ddddot':x_ddddot,
