@@ -32,6 +32,7 @@ class WorldTraj(object):
         self.resolution = np.array([0.25, 0.25, 0.25])
         self.margin = 0.5
 
+        self.alpha = 1 
         # You must store the dense path returned from your Dijkstra or AStar
         # graph search algorithm as an object member. You will need it for
         # debugging, it will be used when plotting results.
@@ -51,6 +52,10 @@ class WorldTraj(object):
         self.points = np.append(self.points,[self.path[-1]],axis=0)
         self.points = self.points[1:,:]
         print(self.points)
+        # self.time_List = np.zeros(self.points.shape[0])
+        # number_Unknowns = self.points.shape[0]*6
+        # boundry_Conditions = np.zeros((number_Unknowns,number_Unknowns))
+        
         self.point_List = []
         self.trajectory_List = []
         self.direction_List = []
