@@ -32,7 +32,7 @@ class WorldTraj(object):
         self.resolution = np.array([0.25, 0.25, 0.25])
         self.margin = 0.5
 
-        self.alpha = 1 
+        self.alpha = 1
         # You must store the dense path returned from your Dijkstra or AStar
         # graph search algorithm as an object member. You will need it for
         # debugging, it will be used when plotting results.
@@ -51,6 +51,7 @@ class WorldTraj(object):
             last_direction = direction
         self.points = np.append(self.points,[self.path[-1]],axis=0)
         self.points = self.points[1:,:]
+        self.points = np.delete(self.points,1,0)
         print(self.points)
         # self.time_List = np.zeros(self.points.shape[0])
         number_Unknowns = (self.points.shape[0]-1)*6
@@ -83,7 +84,7 @@ class WorldTraj(object):
                                                                       [120*self.time_Interval[i],24,0,0,0,0,0,-24,0,0,0,0]
                                                                     ])
             state[-3+6*i:3+6*i,:] = np.array([self.points[i],self.points[i],[0,0,0],[0,0,0],[0,0,0],[0,0,0]])
-        print(boundry_Conditions)
+        self.polynomials = np.linalg.inv(boundry_Conditions) @ state
             
         # self.point_List = []
         # self.trajectory_List = []
@@ -136,11 +137,21 @@ class WorldTraj(object):
         yaw = 0
         yaw_dot = 0
         
-        # if t > self.time_List[-1]:
-        #     x = self.point_List[-1]
-        #     x_dot = np.zeros((3,))
-        #     x_ddot = np.zeros((3,))
-        #     yaw = 0
+        if t > self.time_List[-1]:
+            x = self.points[-1]
+            x_dot = np.zeros((3,))
+            x_ddot = np.zeros((3,))
+            yaw = 0
+        elif t <= self.time_List[-1]:
+            for i in range(len(self.time_List)-1):
+                if t>= self.time_List[i] and t <= self.time_List[i+1]:
+                    delT = t - self.time_List[i]
+                    [x,x_dot,x_ddot,x_dddot,x_ddddot]= np.array([[delT**5,delT**4,delT**3,delT**2,delT**1,1],
+                                                                [5*delT**4,4*delT**3,3*delT**2,2*delT,1,0],
+                                                                [20*delT**3,12*delT**2,6*delT,2,0,0],
+                                                                [60*delT**2,24*delT,6,0,0,0],
+                                                                [120*delT,24,0,0,0,0]
+                                                                ]) @ self.polynomials[6*i:6*i+6,:]
         # elif t <= self.time_List[-1]:
         #     for i in range(len(self.time_List)-1):
         #         if t>=self.time_List[i] and t<self.time_List[i+1]:
