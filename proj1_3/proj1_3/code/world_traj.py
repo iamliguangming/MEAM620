@@ -53,23 +53,52 @@ class WorldTraj(object):
         self.points = self.points[1:,:]
         print(self.points)
         # self.time_List = np.zeros(self.points.shape[0])
+        number_Unknowns = (self.points.shape[0]-1)*6
+        boundry_Conditions = np.zeros((number_Unknowns,number_Unknowns))
+        self.time_List = np.array([0])
+        self.time_Interval = np.array([0])
+        for i in range(1,len(self.points)):
+            self.time_List = np.append(self.time_List,self.alpha*np.linalg.norm(self.points[i]-self.points[i-1])+self.time_List[i-1])
+            self.time_Interval = np.append(self.time_Interval,self.alpha*np.linalg.norm(self.points[i]-self.points[i-1]))
+        # print(self.time_List)
+        # print(self.time_Interval)
         # number_Unknowns = self.points.shape[0]*6
-        # boundry_Conditions = np.zeros((number_Unknowns,number_Unknowns))
+        boundry_Conditions = np.zeros((number_Unknowns,number_Unknowns))
+        state = np.zeros((number_Unknowns,3))
+        boundry_Conditions[0:3,0:6] = np.array([[0,0,0,0,0,1],[0,0,0,0,1,0],[0,0,0,2,0,0]])
+        boundry_Conditions[-3:,-6:] = np.array([[self.time_Interval[-1]**5,self.time_Interval[-1]**4,self.time_Interval[-1]**3,self.time_Interval[-1]**2,self.time_Interval[-1],1],
+                                                [5*self.time_Interval[-1]**4,4*self.time_Interval[-1]**3,3*self.time_Interval[-1]**2,2*self.time_Interval[-1],1,0],
+                                                [20*self.time_Interval[-1]**3,12*self.time_Interval[-1]**2,6*self.time_Interval[-1],2,0,0]
+                                                ])
+        state[0:3,:] = np.array([self.points[0],[0,0,0],[0,0,0]])
+        state[-3:,:] = np.array([self.points[-1],[0,0,0],[0,0,0]])
         
-        self.point_List = []
-        self.trajectory_List = []
-        self.direction_List = []
-        self.time_List = [0]
-        self.real_time_List = [0]
-        self.hover_interval = 0
+
+        for i in range(1, len(self.points)-1):
+            boundry_Conditions[-3+6*i:3+6*i,-6+6*i:6*i+6] = np.array([[self.time_Interval[i]**5,self.time_Interval[i]**4,self.time_Interval[i]**3,self.time_Interval[i]**2,self.time_Interval[i],1,0,0,0,0,0,0],
+                                                                      [0,0,0,0,0,0,0,0,0,0,0,1],
+                                                                      [5*self.time_Interval[i]**4,4*self.time_Interval[i]**3,3*self.time_Interval[i]**2,2*self.time_Interval[i],1,0,0,0,0,0,-1,0],
+                                                                      [20*self.time_Interval[i]**3,12*self.time_Interval[i]**2,6*self.time_Interval[i],2,0,0,0,0,0,-2,0,0],
+                                                                      [60*self.time_Interval[i]**2,24*self.time_Interval[i],6,0,0,0,0,0,-6,0,0,0],
+                                                                      [120*self.time_Interval[i],24,0,0,0,0,0,-24,0,0,0,0]
+                                                                    ])
+            state[-3+6*i:3+6*i,:] = np.array([self.points[i],self.points[i],[0,0,0],[0,0,0],[0,0,0],[0,0,0]])
+        print(boundry_Conditions)
+            
+        # self.point_List = []
+        # self.trajectory_List = []
+        # self.direction_List = []
+        # self.time_List = [0]
+        # self.real_time_List = [0]
+        # self.hover_interval = 0
         
-        for i in range(self.points.shape[0]):
-            self.point_List.append(self.points[i,:])
-        for i in range(len(self.point_List)-1):
-            self.trajectory_List.append(self.point_List[i+1]-self.point_List[i])
-            self.direction_List.append(self.trajectory_List[i]/np.linalg.norm(self.trajectory_List[i]))
-            self.real_time_List.append(self.time_List[i]+2*np.sqrt(np.linalg.norm(self.trajectory_List[i])/self.max_Acceleration))
-            self.time_List.append(self.real_time_List[i+1]+self.hover_interval)
+        # for i in range(self.points.shape[0]):
+        #     self.point_List.append(self.points[i,:])
+        # for i in range(len(self.point_List)-1):
+        #     self.trajectory_List.append(self.point_List[i+1]-self.point_List[i])
+        #     self.direction_List.append(self.trajectory_List[i]/np.linalg.norm(self.trajectory_List[i]))
+        #     self.real_time_List.append(self.time_List[i]+2*np.sqrt(np.linalg.norm(self.trajectory_List[i])/self.max_Acceleration))
+        #     self.time_List.append(self.real_time_List[i+1]+self.hover_interval)
             
                 
                 
@@ -107,25 +136,25 @@ class WorldTraj(object):
         yaw = 0
         yaw_dot = 0
         
-        if t > self.time_List[-1]:
-            x = self.point_List[-1]
-            x_dot = np.zeros((3,))
-            x_ddot = np.zeros((3,))
-            yaw = 0
-        elif t <= self.time_List[-1]:
-            for i in range(len(self.time_List)-1):
-                if t>=self.time_List[i] and t<self.time_List[i+1]:
-                    if t > self.time_List[i+1]-self.hover_interval and t < self.time_List[i+1]:
-                        x = self.point_List[i+1]
-                        x_ddot = np.zeros((3,))
-                    elif t-self.time_List[i] <= self.time_List[i+1]-self.hover_interval-t:
-                        x_ddot = self.direction_List[i] * self.max_Acceleration
-                        x_dot = x_ddot * (t-self.time_List[i])
-                        x = self.point_List[i] + 1/2* x_ddot*(t-self.time_List[i])**2
-                    elif t-self.time_List[i] > self.time_List[i+1]-t-self.hover_interval:
-                        x_ddot = -self.direction_List[i] * self.max_Acceleration
-                        x_dot = -x_ddot*(self.time_List[i+1]-self.hover_interval-t)
-                        x = self.point_List[i+1] + 1/2* x_ddot*(self.time_List[i+1]-self.hover_interval-t)**2
+        # if t > self.time_List[-1]:
+        #     x = self.point_List[-1]
+        #     x_dot = np.zeros((3,))
+        #     x_ddot = np.zeros((3,))
+        #     yaw = 0
+        # elif t <= self.time_List[-1]:
+        #     for i in range(len(self.time_List)-1):
+        #         if t>=self.time_List[i] and t<self.time_List[i+1]:
+        #             if t > self.time_List[i+1]-self.hover_interval and t < self.time_List[i+1]:
+        #                 x = self.point_List[i+1]
+        #                 x_ddot = np.zeros((3,))
+        #             elif t-self.time_List[i] <= self.time_List[i+1]-self.hover_interval-t:
+        #                 x_ddot = self.direction_List[i] * self.max_Acceleration
+        #                 x_dot = x_ddot * (t-self.time_List[i])
+        #                 x = self.point_List[i] + 1/2* x_ddot*(t-self.time_List[i])**2
+        #             elif t-self.time_List[i] > self.time_List[i+1]-t-self.hover_interval:
+        #                 x_ddot = -self.direction_List[i] * self.max_Acceleration
+        #                 x_dot = -x_ddot*(self.time_List[i+1]-self.hover_interval-t)
+        #                 x = self.point_List[i+1] + 1/2* x_ddot*(self.time_List[i+1]-self.hover_interval-t)**2
         # STUDENT CODE HERE
 
         flat_output = { 'x':x, 'x_dot':x_dot, 'x_ddot':x_ddot, 'x_dddot':x_dddot, 'x_ddddot':x_ddddot,
