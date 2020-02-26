@@ -1,10 +1,11 @@
 import numpy as np
 
 from proj1_3.code.graph_search import graph_search
+from proj1_3.code.occupancy_map import OccupancyMap # Recommended.
 
 class WorldTraj(object):
-    max_Velocity = 0.5
-    max_Acceleration = 3
+    # max_Velocity = 0.5
+    # max_Acceleration = 3
     """
 
     """
@@ -30,28 +31,32 @@ class WorldTraj(object):
         # must chose them for yourself. Your may try these default values, but
         # you should experiment with them!
         self.resolution = np.array([0.25, 0.25, 0.25])
-        self.margin = 0.5
+        self.margin = 0.35
 
-        self.alpha = 1
+        self.alpha = 0.5
         # You must store the dense path returned from your Dijkstra or AStar
         # graph search algorithm as an object member. You will need it for
         # debugging, it will be used when plotting results.
         self.path = graph_search(world, self.resolution, self.margin, start, goal, astar=True)
+        self.occ_map = OccupancyMap(world, self.resolution, self.margin)
 
         # You must generate a sparse set of waypoints to fly between. Your
         # original Dijkstra or AStar path probably has too many points that are
         # too close together. Store these waypoints as a class member; you will
         # need it for debugging and it will be used when plotting results.
         self.points = np.zeros((1,3)) # shape=(n_pts,3)
-        last_direction = np.zeros(3)
+        self.points[0,:] = self.path[0] 
+        current_point = self.points[0,:]
+        # last_direction = np.zeros(3)
         for i in range(len(self.path)-1): 
-            direction = self.path[i+1] - self.path[i]
-            if not (direction == last_direction).all():
+            if self.pathBlocked(current_point, self.path[i+1]):
                 self.points = np.append(self.points,[self.path[i]],axis=0)
-            last_direction = direction
+                current_point = self.path[i]
         self.points = np.append(self.points,[self.path[-1]],axis=0)
-        self.points = self.points[1:,:]
-        self.points = np.delete(self.points,1,0)
+        # self.points = self.points[1:,:]
+        # self.points = np.delete(self.points,1,0)
+        # self.points = np.delete(self.points,-2,0)
+        # self.points = np.delete(self.points,-2,0)
         print(self.points)
         # self.time_List = np.zeros(self.points.shape[0])
         number_Unknowns = (self.points.shape[0]-1)*6
@@ -171,3 +176,12 @@ class WorldTraj(object):
         flat_output = { 'x':x, 'x_dot':x_dot, 'x_ddot':x_ddot, 'x_dddot':x_dddot, 'x_ddddot':x_ddddot,
                         'yaw':yaw, 'yaw_dot':yaw_dot}
         return flat_output
+    
+    def pathBlocked(self, start_Point, end_Point):
+        diff = end_Point - start_Point
+        largest_Dis = max(abs(diff))
+        points = np.linspace(start_Point,end_Point,num = int(largest_Dis/min(self.resolution)))
+        for point in points :
+            if self.occ_map.is_occupied_metric(point):
+                return True
+        return False
