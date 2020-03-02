@@ -31,13 +31,15 @@ class WorldTraj(object):
         # must chose them for yourself. Your may try these default values, but
         # you should experiment with them!
         self.resolution = np.array([0.25, 0.25, 0.25])
-        self.margin = 0.35
+        self.margin = 0.5
+        self.beta = 0.75
 
-        self.alpha = 0.5
+        self.alpha = 0.1
+        max_Dist_Point = 3.8
         # You must store the dense path returned from your Dijkstra or AStar
         # graph search algorithm as an object member. You will need it for
         # debugging, it will be used when plotting results.
-        self.path = graph_search(world, self.resolution, self.margin, start, goal, astar=True)
+        self.path = graph_search(world, self.resolution, self.margin, start, goal, astar=False)
         self.occ_map = OccupancyMap(world, self.resolution, self.margin)
 
         # You must generate a sparse set of waypoints to fly between. Your
@@ -47,28 +49,24 @@ class WorldTraj(object):
         self.points = np.zeros((1,3)) # shape=(n_pts,3)
         self.points[0,:] = self.path[0] 
         current_point = self.points[0,:]
-        # last_direction = np.zeros(3)
+        # last_direction = np.zeros(3) 
         for i in range(len(self.path)-1): 
-            if self.pathBlocked(current_point, self.path[i+1]):
+            if self.pathBlocked(current_point, self.path[i+1]) or np.linalg.norm(self.path[i+1]-current_point)>max_Dist_Point:
                 self.points = np.append(self.points,[self.path[i]],axis=0)
                 current_point = self.path[i]
         self.points = np.append(self.points,[self.path[-1]],axis=0)
-        # self.points = self.points[1:,:]
-        # self.points = np.delete(self.points,1,0)
-        # self.points = np.delete(self.points,-2,0)
-        # self.points = np.delete(self.points,-2,0)
+
         print(self.points)
-        # self.time_List = np.zeros(self.points.shape[0])
         number_Unknowns = (self.points.shape[0]-1)*6
         boundry_Conditions = np.zeros((number_Unknowns,number_Unknowns))
         self.time_List = np.array([0])
         self.time_Interval = np.array([0])
         for i in range(1,len(self.points)):
-            self.time_List = np.append(self.time_List,self.alpha*np.linalg.norm(self.points[i]-self.points[i-1])+self.time_List[i-1])
-            self.time_Interval = np.append(self.time_Interval,self.alpha*np.linalg.norm(self.points[i]-self.points[i-1]))
-        # print(self.time_List)
-        # print(self.time_Interval)
-        # number_Unknowns = self.points.shape[0]*6
+            self.time_List = np.append(self.time_List,self.beta*np.exp(self.alpha*np.linalg.norm(self.points[i]-self.points[i-1]))+self.time_List[i-1])
+            self.time_Interval = np.append(self.time_Interval,self.beta*np.exp(self.alpha*np.linalg.norm(self.points[i]-self.points[i-1])))
+        print(self.time_Interval)
+        print(len(self.time_Interval))
+        print(len(self.points))
         boundry_Conditions = np.zeros((number_Unknowns,number_Unknowns))
         state = np.zeros((number_Unknowns,3))
         boundry_Conditions[0:3,0:6] = np.array([[0,0,0,0,0,1],[0,0,0,0,1,0],[0,0,0,2,0,0]])
@@ -90,24 +88,6 @@ class WorldTraj(object):
                                                                     ])
             state[-3+6*i:3+6*i,:] = np.array([self.points[i],self.points[i],[0,0,0],[0,0,0],[0,0,0],[0,0,0]])
         self.polynomials = np.linalg.inv(boundry_Conditions) @ state
-            
-        # self.point_List = []
-        # self.trajectory_List = []
-        # self.direction_List = []
-        # self.time_List = [0]
-        # self.real_time_List = [0]
-        # self.hover_interval = 0
-        
-        # for i in range(self.points.shape[0]):
-        #     self.point_List.append(self.points[i,:])
-        # for i in range(len(self.point_List)-1):
-        #     self.trajectory_List.append(self.point_List[i+1]-self.point_List[i])
-        #     self.direction_List.append(self.trajectory_List[i]/np.linalg.norm(self.trajectory_List[i]))
-        #     self.real_time_List.append(self.time_List[i]+2*np.sqrt(np.linalg.norm(self.trajectory_List[i])/self.max_Acceleration))
-        #     self.time_List.append(self.real_time_List[i+1]+self.hover_interval)
-            
-                
-                
 
 
         # Finally, you must compute a trajectory through the waypoints similar
@@ -143,7 +123,7 @@ class WorldTraj(object):
         yaw_dot = 0
         
         if t > self.time_List[-1]:
-            x = self.points[-1]
+            x = self.path[-1]
             x_dot = np.zeros((3,))
             x_ddot = np.zeros((3,))
             yaw = 0
