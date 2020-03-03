@@ -12,7 +12,7 @@ from graph_search import graph_search
 
 # Choose a test example file. You should write your own example files too!
 # filename = 'test_empty.json'
-filename = 'test_window.json'
+filename = 'test_forest.json'
 
 # Load the test example.
 file = Path(inspect.getsourcefile(lambda:0)).parent.resolve() / '..' / 'util' / filename
