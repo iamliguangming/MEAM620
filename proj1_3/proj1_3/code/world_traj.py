@@ -30,11 +30,11 @@ class WorldTraj(object):
         # planning. In the previous project these were provided to you; now you
         # must chose them for yourself. Your may try these default values, but
         # you should experiment with them!
-        self.resolution = np.array([0.25, 0.25, 0.25])
-        self.margin = 0.5
-        self.beta = 0.75
+        self.resolution = np.array([0.125, 0.125, 0.125])
+        self.margin = 0.3
+        self.beta = 0.85
 
-        self.alpha = 0.1
+        self.alpha = 0.3
         max_Dist_Point = 3.8
         # You must store the dense path returned from your Dijkstra or AStar
         # graph search algorithm as an object member. You will need it for
