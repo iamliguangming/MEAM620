@@ -1,10 +1,11 @@
 import numpy as np
 
 from proj1_3.code.graph_search import graph_search
+from proj1_3.code.occupancy_map import OccupancyMap # Recommended.
 
 class WorldTraj(object):
-    max_Velocity = 0.5
-    max_Acceleration = 3
+    # max_Velocity = 0.5
+    # max_Acceleration = 3
     """
 
     """
@@ -29,50 +30,64 @@ class WorldTraj(object):
         # planning. In the previous project these were provided to you; now you
         # must chose them for yourself. Your may try these default values, but
         # you should experiment with them!
-        self.resolution = np.array([0.25, 0.25, 0.25])
-        self.margin = 0.5
+        self.resolution = np.array([0.125, 0.125, 0.125])
+        self.margin = 0.3
+        self.beta = 2
 
-        self.alpha = 1 
+        self.alpha = 0.3
+        max_Dist_Point = 3.8
         # You must store the dense path returned from your Dijkstra or AStar
         # graph search algorithm as an object member. You will need it for
         # debugging, it will be used when plotting results.
-        self.path = graph_search(world, self.resolution, self.margin, start, goal, astar=True)
+        self.path = graph_search(world, self.resolution, self.margin, start, goal, astar=False)
+        self.occ_map = OccupancyMap(world, self.resolution, self.margin)
 
         # You must generate a sparse set of waypoints to fly between. Your
         # original Dijkstra or AStar path probably has too many points that are
         # too close together. Store these waypoints as a class member; you will
         # need it for debugging and it will be used when plotting results.
         self.points = np.zeros((1,3)) # shape=(n_pts,3)
-        last_direction = np.zeros(3)
+        self.points[0,:] = self.path[0] 
+        current_point = self.points[0,:]
+        # last_direction = np.zeros(3) 
         for i in range(len(self.path)-1): 
-            direction = self.path[i+1] - self.path[i]
-            if not (direction == last_direction).all():
+            if self.pathBlocked(current_point, self.path[i+1]) or np.linalg.norm(self.path[i+1]-current_point)>max_Dist_Point:
                 self.points = np.append(self.points,[self.path[i]],axis=0)
-            last_direction = direction
+                current_point = self.path[i]
         self.points = np.append(self.points,[self.path[-1]],axis=0)
-        self.points = self.points[1:,:]
+
         print(self.points)
-        # self.time_List = np.zeros(self.points.shape[0])
-        # number_Unknowns = self.points.shape[0]*6
-        # boundry_Conditions = np.zeros((number_Unknowns,number_Unknowns))
+        number_Unknowns = (self.points.shape[0]-1)*6
+        boundry_Conditions = np.zeros((number_Unknowns,number_Unknowns))
+        self.time_List = np.array([0])
+        self.time_Interval = np.array([0])
+        for i in range(1,len(self.points)):
+            self.time_List = np.append(self.time_List,self.beta*np.exp(self.alpha*np.linalg.norm(self.points[i]-self.points[i-1]))+self.time_List[i-1])
+            self.time_Interval = np.append(self.time_Interval,self.beta*np.exp(self.alpha*np.linalg.norm(self.points[i]-self.points[i-1])))
+        print(self.time_Interval)
+        print(len(self.time_Interval))
+        print(len(self.points))
+        boundry_Conditions = np.zeros((number_Unknowns,number_Unknowns))
+        state = np.zeros((number_Unknowns,3))
+        boundry_Conditions[0:3,0:6] = np.array([[0,0,0,0,0,1],[0,0,0,0,1,0],[0,0,0,2,0,0]])
+        boundry_Conditions[-3:,-6:] = np.array([[self.time_Interval[-1]**5,self.time_Interval[-1]**4,self.time_Interval[-1]**3,self.time_Interval[-1]**2,self.time_Interval[-1],1],
+                                                [5*self.time_Interval[-1]**4,4*self.time_Interval[-1]**3,3*self.time_Interval[-1]**2,2*self.time_Interval[-1],1,0],
+                                                [20*self.time_Interval[-1]**3,12*self.time_Interval[-1]**2,6*self.time_Interval[-1],2,0,0]
+                                                ])
+        state[0:3,:] = np.array([self.points[0],[0,0,0],[0,0,0]])
+        state[-3:,:] = np.array([self.points[-1],[0,0,0],[0,0,0]])
         
-        self.point_List = []
-        self.trajectory_List = []
-        self.direction_List = []
-        self.time_List = [0]
-        self.real_time_List = [0]
-        self.hover_interval = 0
-        
-        for i in range(self.points.shape[0]):
-            self.point_List.append(self.points[i,:])
-        for i in range(len(self.point_List)-1):
-            self.trajectory_List.append(self.point_List[i+1]-self.point_List[i])
-            self.direction_List.append(self.trajectory_List[i]/np.linalg.norm(self.trajectory_List[i]))
-            self.real_time_List.append(self.time_List[i]+2*np.sqrt(np.linalg.norm(self.trajectory_List[i])/self.max_Acceleration))
-            self.time_List.append(self.real_time_List[i+1]+self.hover_interval)
-            
-                
-                
+
+        for i in range(1, len(self.points)-1):
+            boundry_Conditions[-3+6*i:3+6*i,-6+6*i:6*i+6] = np.array([[self.time_Interval[i]**5,self.time_Interval[i]**4,self.time_Interval[i]**3,self.time_Interval[i]**2,self.time_Interval[i],1,0,0,0,0,0,0],
+                                                                      [0,0,0,0,0,0,0,0,0,0,0,1],
+                                                                      [5*self.time_Interval[i]**4,4*self.time_Interval[i]**3,3*self.time_Interval[i]**2,2*self.time_Interval[i],1,0,0,0,0,0,-1,0],
+                                                                      [20*self.time_Interval[i]**3,12*self.time_Interval[i]**2,6*self.time_Interval[i],2,0,0,0,0,0,-2,0,0],
+                                                                      [60*self.time_Interval[i]**2,24*self.time_Interval[i],6,0,0,0,0,0,-6,0,0,0],
+                                                                      [120*self.time_Interval[i],24,0,0,0,0,0,-24,0,0,0,0]
+                                                                    ])
+            state[-3+6*i:3+6*i,:] = np.array([self.points[i],self.points[i],[0,0,0],[0,0,0],[0,0,0],[0,0,0]])
+        self.polynomials = np.linalg.inv(boundry_Conditions) @ state
 
 
         # Finally, you must compute a trajectory through the waypoints similar
@@ -108,26 +123,45 @@ class WorldTraj(object):
         yaw_dot = 0
         
         if t > self.time_List[-1]:
-            x = self.point_List[-1]
+            x = self.path[-1]
             x_dot = np.zeros((3,))
             x_ddot = np.zeros((3,))
             yaw = 0
         elif t <= self.time_List[-1]:
             for i in range(len(self.time_List)-1):
-                if t>=self.time_List[i] and t<self.time_List[i+1]:
-                    if t > self.time_List[i+1]-self.hover_interval and t < self.time_List[i+1]:
-                        x = self.point_List[i+1]
-                        x_ddot = np.zeros((3,))
-                    elif t-self.time_List[i] <= self.time_List[i+1]-self.hover_interval-t:
-                        x_ddot = self.direction_List[i] * self.max_Acceleration
-                        x_dot = x_ddot * (t-self.time_List[i])
-                        x = self.point_List[i] + 1/2* x_ddot*(t-self.time_List[i])**2
-                    elif t-self.time_List[i] > self.time_List[i+1]-t-self.hover_interval:
-                        x_ddot = -self.direction_List[i] * self.max_Acceleration
-                        x_dot = -x_ddot*(self.time_List[i+1]-self.hover_interval-t)
-                        x = self.point_List[i+1] + 1/2* x_ddot*(self.time_List[i+1]-self.hover_interval-t)**2
+                if t>= self.time_List[i] and t <= self.time_List[i+1]:
+                    delT = t - self.time_List[i]
+                    [x,x_dot,x_ddot,x_dddot,x_ddddot]= np.array([[delT**5,delT**4,delT**3,delT**2,delT**1,1],
+                                                                [5*delT**4,4*delT**3,3*delT**2,2*delT,1,0],
+                                                                [20*delT**3,12*delT**2,6*delT,2,0,0],
+                                                                [60*delT**2,24*delT,6,0,0,0],
+                                                                [120*delT,24,0,0,0,0]
+                                                                ]) @ self.polynomials[6*i:6*i+6,:]
+        # elif t <= self.time_List[-1]:
+        #     for i in range(len(self.time_List)-1):
+        #         if t>=self.time_List[i] and t<self.time_List[i+1]:
+        #             if t > self.time_List[i+1]-self.hover_interval and t < self.time_List[i+1]:
+        #                 x = self.point_List[i+1]
+        #                 x_ddot = np.zeros((3,))
+        #             elif t-self.time_List[i] <= self.time_List[i+1]-self.hover_interval-t:
+        #                 x_ddot = self.direction_List[i] * self.max_Acceleration
+        #                 x_dot = x_ddot * (t-self.time_List[i])
+        #                 x = self.point_List[i] + 1/2* x_ddot*(t-self.time_List[i])**2
+        #             elif t-self.time_List[i] > self.time_List[i+1]-t-self.hover_interval:
+        #                 x_ddot = -self.direction_List[i] * self.max_Acceleration
+        #                 x_dot = -x_ddot*(self.time_List[i+1]-self.hover_interval-t)
+        #                 x = self.point_List[i+1] + 1/2* x_ddot*(self.time_List[i+1]-self.hover_interval-t)**2
         # STUDENT CODE HERE
 
         flat_output = { 'x':x, 'x_dot':x_dot, 'x_ddot':x_ddot, 'x_dddot':x_dddot, 'x_ddddot':x_ddddot,
                         'yaw':yaw, 'yaw_dot':yaw_dot}
         return flat_output
+    
+    def pathBlocked(self, start_Point, end_Point):
+        diff = end_Point - start_Point
+        largest_Dis = max(abs(diff))
+        points = np.linspace(start_Point,end_Point,num = int(largest_Dis/min(self.resolution)))
+        for point in points :
+            if self.occ_map.is_occupied_metric(point):
+                return True
+        return False

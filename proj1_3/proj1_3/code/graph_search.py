@@ -147,7 +147,7 @@ def graph_search(world, resolution, margin, start, goal, astar):
     while [current_X,current_Y,current_Z] != [start_index[0],start_index[1],start_index[2]]:
         path.insert(0,occ_map.index_to_metric_center([current_X,current_Y,current_Z]))
         [current_X,current_Y,current_Z] = parent[int(current_X),int(current_Y),int(current_Z)]
-    path.insert(0,occ_map.index_to_metric_center(start_index))
+    # path.insert(0,occ_map.index_to_metric_center(start_index))
     path.insert(0,start)
     path.append(goal)
 

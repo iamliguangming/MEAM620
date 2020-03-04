@@ -18,11 +18,11 @@ from proj1_3.code.occupancy_map import OccupancyMap
 from proj1_3.code.se3_control import SE3Control
 from proj1_3.code.world_traj import WorldTraj
 
-# Improve figure display on high DPI screens.
+# Improve figure display on high DPI screens.   
 # mpl.rcParams['figure.dpi'] = 200
 
 # Choose a test example file. You should write your own example files too!
-filename = '../util/test_over_under.json'
+filename = '../util/test_lab_1.json'
 
 # Load the test example.
 file = Path(inspect.getsourcefile(lambda:0)).parent.resolve() / '..' / 'util' / filename
