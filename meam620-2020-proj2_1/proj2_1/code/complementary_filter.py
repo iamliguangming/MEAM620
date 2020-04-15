@@ -41,7 +41,7 @@ def complementary_filter_update(initial_rotation, angular_velocity, linear_accel
     R_acc = Rotation.from_quat(r_acc_prime)
     # print(R_acc.as_euler('XYZ'))
     
-    return updated_rotation * R_acc
+    return R_acc *updated_rotation
     
     
     
