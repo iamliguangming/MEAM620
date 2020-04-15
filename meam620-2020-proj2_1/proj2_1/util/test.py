@@ -29,6 +29,12 @@ class TestBase(unittest.TestCase):
             output_t = np.array(d['output_t'])
 
             w, t = solve_w_t(uvd1, uvd2, R0)
+            # print(w.ravel())
+            # print(output_w)
+            # print(norm(w.ravel() - output_w))
+            # print(t.ravel())
+            # print(output_t)
+            # print(norm(t.ravel() - output_t))
 
             self.assertTrue(norm(w.ravel() - output_w) < 1e-5, 'failed ' + fname)
             self.assertTrue(norm(t.ravel() - output_t) < 1e-5, 'failed ' + fname)

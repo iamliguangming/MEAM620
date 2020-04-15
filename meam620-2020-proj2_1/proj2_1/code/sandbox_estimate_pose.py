@@ -8,7 +8,7 @@ import stereo
 
 #%% Read in dataset
 
-main_data_dir = "../dataset/MachineHall01_reduced/"
+main_data_dir = "/Users/yupengli/MEAM620/meam620-2020-proj2_1/proj2_1/dataset/MachineHall01_reduced/"
 dataset = stereo.StereoDataSet(main_data_dir)
 
 # %% Process dataset

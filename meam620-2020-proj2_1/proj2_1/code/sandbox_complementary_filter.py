@@ -6,8 +6,7 @@ import matplotlib.pyplot as plt
 from complementary_filter import complementary_filter_update
 
 # %%  CSV imu file
-fname = '/Users/cjt/Academics/COURSES/MEAM 620/EuRoc Data Set/MachineHall01/imu0/data.csv'
-
+fname = '/Users/yupengli/MEAM620/meam620-2020-proj2_1/proj2_1/dataset/MachineHall01_reduced/imu0/data.csv'
 # %%
 imu0 = np.genfromtxt(fname, delimiter=',', dtype='float64', skip_header=1)
 
@@ -33,6 +32,8 @@ for i in range(1, n):
     dt = (t[i] - t[i - 1]) * 1e-9
     R = complementary_filter_update(R, angular_velocity[i - 1], linear_acceleration[i], dt)
     euler[i] = R.as_euler('XYZ', degrees=True)
+
+    # print (euler[i,0])
 
 # %% Plots
 

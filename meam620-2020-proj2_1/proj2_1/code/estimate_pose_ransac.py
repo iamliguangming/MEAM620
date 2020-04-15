@@ -71,9 +71,31 @@ def find_inliers(w, t, uvd1, uvd2, R0, threshold):
 
 
     n = uvd1.shape[1]
-
+    A = np.zeros((2*n,6))
+    b = np.zeros((2*n))
+    x = np.concatenate((w,t),axis=0)
+    for i in range(n):
+        u1_prime = uvd1[0,i]
+        u2_prime = uvd2[0,i]
+        v1_prime = uvd1[1,i]
+        v2_prime = uvd2[1,i]
+        d1_prime = uvd1[2,i]
+        d2_prime = uvd2[2,i]
+        y = R0.as_matrix() @ np.array([u2_prime,v2_prime,1])
+        b[2*i:2*i+2] = -np.array([[1,0,-u1_prime],[0,1,-v1_prime]]) @ y
+        A[2*i:2*i+2,:] = np.array([[1,0,-u1_prime],[0,1,-v1_prime]])@np.array([[0,y[2],-y[1],d2_prime,0,0],
+                                                                               [-y[2],0,y[0],0,d2_prime,0],
+                                                                               [y[1],-y[0],0,0,0,d2_prime]])
+    bool_array = np.abs(A@x.flatten()-b)<=threshold
+    return_array = np.zeros(n,dtype='bool')
+    for i in range(n):
+        if bool_array[2*i] and bool_array[2*i+1]:
+            return_array[i] = True
+        else:
+            return_array[i] = False
+    return return_array
     # TODO Your code here replace the dummy return value with a value you compute
-    return np.zeros(n, dtype='bool')
+    # return np.zeros(n, dtype='bool')
 
 def solve_w_t(uvd1, uvd2, R0):
     """
@@ -87,4 +109,26 @@ def solve_w_t(uvd1, uvd2, R0):
 
     # TODO Your code here replace the dummy return value with a value you compute
     w = t = np.zeros((3,1))
+    n = uvd1.shape[1]
+    A = np.zeros((2*n,6))
+    b = np.zeros((2*n))
+    for i in range(n):
+        u1_prime = uvd1[0,i]
+        u2_prime = uvd2[0,i]
+        v1_prime = uvd1[1,i]
+        v2_prime = uvd2[1,i]
+        d1_prime = uvd1[2,i]
+        d2_prime = uvd2[2,i]
+        y = R0.as_matrix() @ np.array([u2_prime,v2_prime,1])
+        b[2*i:2*i+2] = -np.array([[1,0,-u1_prime],[0,1,-v1_prime]]) @ y
+        A[2*i:2*i+2,:] = np.array([[1,0,-u1_prime],[0,1,-v1_prime]])@np.array([[0,y[2],-y[1],d2_prime,0,0],
+                                                                               [-y[2],0,y[0],0,d2_prime,0],
+                                                                               [y[1],-y[0],0,0,0,d2_prime]])
+    x = np.linalg.lstsq(A,b,rcond=None)[0].reshape(6,1)
+    w = x[0:3]
+    t = x[3:6]
+        
+
+    
+    
     return w, t
