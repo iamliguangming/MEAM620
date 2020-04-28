@@ -81,15 +81,20 @@ def find_inliers(w, t, uvd1, uvd2, R0, threshold):
         v2_prime = uvd2[1,i]
         d1_prime = uvd1[2,i]
         d2_prime = uvd2[2,i]
+        scale_ratio = d2_prime/d1_prime
+        # u1_prime = u1_prime * scale_ratio
+        # v1_prime = v1_prime * scale_ratio
         y = R0.as_matrix() @ np.array([u2_prime,v2_prime,1])
         b[2*i:2*i+2] = -np.array([[1,0,-u1_prime],[0,1,-v1_prime]]) @ y
         A[2*i:2*i+2,:] = np.array([[1,0,-u1_prime],[0,1,-v1_prime]])@np.array([[0,y[2],-y[1],d2_prime,0,0],
                                                                                [-y[2],0,y[0],0,d2_prime,0],
                                                                                [y[1],-y[0],0,0,0,d2_prime]])
-    bool_array = np.abs(A@x.flatten()-b)<=threshold
+    # bool_array = np.abs(A@x.flatten()-b)<threshold
+    difference_array = A@x.flatten() - b
     return_array = np.zeros(n,dtype='bool')
     for i in range(n):
-        if bool_array[2*i] and bool_array[2*i+1]:
+        # if bool_array[2*i] and bool_array[2*i+1]:
+        if np.sqrt(difference_array[2*i]**2 + difference_array[2*i+1]**2) < threshold:
             return_array[i] = True
         else:
             return_array[i] = False
@@ -119,6 +124,9 @@ def solve_w_t(uvd1, uvd2, R0):
         v2_prime = uvd2[1,i]
         d1_prime = uvd1[2,i]
         d2_prime = uvd2[2,i]
+        # scale_ratio = d2_prime/d1_prime
+        # u1_prime = u1_prime * scale_ratio
+        # v1_prime = v1_prime * scale_ratio
         y = R0.as_matrix() @ np.array([u2_prime,v2_prime,1])
         b[2*i:2*i+2] = -np.array([[1,0,-u1_prime],[0,1,-v1_prime]]) @ y
         A[2*i:2*i+2,:] = np.array([[1,0,-u1_prime],[0,1,-v1_prime]])@np.array([[0,y[2],-y[1],d2_prime,0,0],
