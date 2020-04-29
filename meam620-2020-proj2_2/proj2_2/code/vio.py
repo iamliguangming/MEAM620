@@ -61,7 +61,8 @@ def error_covariance_update(nominal_state, error_state_covariance, w_m, a_m, dt,
     Fx[3:6,6:9] = -q.as_matrix() @ np.array([[0,-delta_a[2],delta_a[1]],
                                            [delta_a[2],0,-delta_a[0]],
                                            [-delta_a[1],delta_a[0],0]]) * dt
-    Fx[6:9,6:9] = q.as_matrix().T @ Rotation.from_rotvec(((w_m -w_b)*dt).flatten()).as_matrix()
+    # Fx[6:9,6:9] = q.as_matrix().T @ Rotation.from_rotvec(((w_m -w_b)*dt).flatten()).as_matrix()
+    Fx[6:9,6:9] = Rotation.from_rotvec(((w_m -w_b)*dt).flatten()).as_matrix().T
     Fx[3:6,9:12] = -q.as_matrix() * dt
     Fx[3:6,15:18] = np.identity(3) * dt
     Fx[6:9,12:15] = - np.identity(3)*dt

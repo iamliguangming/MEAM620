@@ -47,6 +47,8 @@ class TestBase(unittest.TestCase):
                                                                  accelerometer_noise_density, gyroscope_noise_density,
                                                                  accelerometer_random_walk, gyroscope_random_walk)
 
+            # print(error_state_covariance)
+            # print(out_error_state_covariance)
             delta = error_state_covariance - out_error_state_covariance
 
             self.assertTrue(norm(delta.ravel()) < 1e-5, 'failed ' + fname)
